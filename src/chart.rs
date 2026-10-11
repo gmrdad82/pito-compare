@@ -239,6 +239,9 @@ impl Chart {
         }
         for (gi, g) in self.groups.iter().enumerate() {
             fits(&format!("groups[{gi}].name"), &g.name, 2)?;
+            if g.rows.is_empty() {
+                return Err(Error::new(format!("groups[{gi}] has no rows")));
+            }
             for (ri, row) in g.rows.iter().enumerate() {
                 let at = format!("groups[{gi}].rows[{ri}]");
                 fits(&format!("{at}.label"), &row.shown_label(), 3)?;
@@ -335,7 +338,7 @@ fn toml_error(text: &str, e: &toml::de::Error) -> Error {
     let message = e.message().trim().to_string();
     match e.span() {
         Some(span) => {
-            let before = &text[..span.start.min(text.len())];
+            let before = text.get(..span.start).unwrap_or(text);
             let line = before.matches('\n').count() + 1;
             let column = before.rsplit('\n').next().map_or(0, |l| l.chars().count()) + 1;
             Error::new(format!("{message} at line {line} column {column}"))
