@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+out=${1:-docs/images}
+pcmp=${PCMP:-target/release/pcmp}
+[ -n "${PCMP-}" ] || cargo build --release --locked --bin pcmp
+for data in examples/speed.toml examples/latency.json examples/build.toml; do
+  "$pcmp" "$data" --out "$out"
+done

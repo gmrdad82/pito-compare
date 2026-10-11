@@ -1,0 +1,24 @@
+pito-compare
+Copyright (c) 2026 Cătălin Ilinca
+
+The code is under the MIT licence in LICENSE. Its chart drawing, colours and
+pixel font come from pito-codecs (examples/bench/charts.rs at commit
+312dca20573b3700cd483e2a1b7a6408331803b1, MIT, the same owner), as
+INSPIRATION.md says.
+
+These are the files in this repository that are not code, where each comes
+from, and what covers it.
+
+Charts drawn by pcmp from the sample data in examples/ (bin/images), under the
+MIT licence like the code; the data is made up for the README:
+- docs/images/speed-paired.png and docs/images/speed-ratio.png: examples/speed.toml
+- docs/images/latency-paired.png and docs/images/latency-ratio.png: examples/latency.json
+- docs/images/build-bars.png: examples/build.toml
+
+Terminal clip recorded by prec from this repository's own shot
+(render/terminal.toml and the tape and data in render/terminal/), made a GIF by
+pconv, under the MIT licence like the code:
+- docs/images/draw.gif: the draw shot
+
+The pito-compare, pcmp and PITO names and their logos are © Catalin Ilinca,
+all rights reserved and not covered by the MIT licence (TRADEMARKS.md).

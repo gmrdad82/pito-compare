@@ -1,0 +1,10 @@
+title = "PARSE SPEED"
+unit = "MEGABYTES PER SECOND"
+better = "higher"
+suffix = " MB/S"
+parties = [{ name = "PARSER V2" }, { name = "PARSER V1" }]
+rows = [
+  { label = "CONFIG FILES", values = [612, 240] },
+  { label = "LOG LINES", values = [455, 420] },
+  { label = "DATA DUMPS", values = [1210, 388] },
+]

@@ -1,0 +1,23 @@
+title = "COLD BUILD TIME"
+unit = "SECONDS"
+better = "lower"
+subtitle = "SAMPLE DATA, RELEASE PROFILE"
+date = "2026-10-11"
+suffix = " S"
+decimals = 0
+notes = ["SAMPLE DATA FOR THIS README: ONE PARTY DRAWS AS SINGLE BARS."]
+
+[[parties]]
+name = "RELEASE BUILD"
+
+[[groups]]
+name = "LINUX X86_64"
+rows = [{ label = "LIBRARY", values = [38] }, { label = "COMMAND", values = [52] }]
+
+[[groups]]
+name = "WINDOWS X86_64"
+rows = [{ label = "LIBRARY", values = [61] }, { label = "COMMAND", values = [84] }]
+
+[[groups]]
+name = "MACOS ARM64"
+rows = [{ label = "LIBRARY", values = [29] }, { label = "COMMAND", values = [41] }]

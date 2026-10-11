@@ -1,0 +1,34 @@
+title = "PARSE SPEED"
+unit = "MEGABYTES PER SECOND"
+better = "higher"
+subtitle = "SAMPLE DATA, 8-CORE LAPTOP"
+date = "2026-10-11"
+suffix = " MB/S"
+notes = [
+  "SAMPLE DATA FOR THIS README: THE SAME FILES PARSED BY BOTH VERSIONS, BEST OF 5 RUNS.",
+  "* NOT LIKE FOR LIKE: V1 SKIPS THE VALIDATION PASS THAT V2 ALWAYS RUNS.",
+]
+
+[[parties]]
+name = "PARSER V2"
+colour = "ours"
+
+[[parties]]
+name = "PARSER V1"
+colour = "theirs"
+
+[[groups]]
+name = "SMALL FILES, UNDER 64 KB"
+rows = [
+  { label = "CONFIG FILES", values = [612, 240] },
+  { label = "API RESPONSES", values = [548, 301] },
+  { label = "LOG LINES", values = [455, 420] },
+]
+
+[[groups]]
+name = "LARGE FILES, OVER 100 MB"
+rows = [
+  { label = "DATA DUMPS", values = [1210, 388] },
+  { label = "GEOJSON MAPS", values = [890, 905] },
+  { label = "DEEP NESTING", values = [130, 410], mark = "*" },
+]

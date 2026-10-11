@@ -1,7 +1,7 @@
 tmp/
 target/
 node_modules/
-/.dev/
+/.dev
 /AGENTS.md
 /CLAUDE.md
 /prompts
