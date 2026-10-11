@@ -28,6 +28,7 @@ The README at https://github.com/gmrdad82/pito-compare has every field.";
 #[derive(Parser)]
 #[command(
     name = "pcmp",
+    bin_name = "pcmp",
     version,
     about = "Draws comparison charts as PNGs from a JSON or TOML data file",
     after_help = AFTER
