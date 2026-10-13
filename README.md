@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml/badge.svg)](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml) [![Version](https://img.shields.io/github/v/tag/gmrdad82/pito-compare)](https://github.com/gmrdad82/pito-compare/tags)
 
-pito-compare draws comparison charts as PNGs, part of [PITO](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars.
+pito-compare draws comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars.
 
 ## What it is
 
@@ -170,4 +170,4 @@ bin/gate
 
 ## Licence
 
-The code is MIT licensed ([LICENSE](LICENSE)), © Catalin Ilinca. The pito-compare, pcmp and PITO names and their logos are © Catalin Ilinca, all rights reserved, and are not covered by the MIT licence ([TRADEMARKS.md](TRADEMARKS.md)).
+The code is MIT licensed ([LICENSE](LICENSE)), © Catalin Ilinca. The pito-compare, pcmp and PITO MD names and their logos are © Catalin Ilinca, all rights reserved, and are not covered by the MIT licence ([TRADEMARKS.md](TRADEMARKS.md)).
