@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 — 2026-10-14
+
+### Fixed
+
+- A ratio chart's axis labels never draw over each other: when a wide spread puts the 2× SLOWER tick right beside 1× SAME, the 2× label gives way.
+
 ## v1.0.0 — 2026-10-14
 
 pito-compare is 1.0: the charts, the data format and the library are the same as in 0.1.0.
