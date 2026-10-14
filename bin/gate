@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if command -v shellcheck > /dev/null; then
-  shellcheck bin/gate bin/images bin/docs-bundle
+  shellcheck bin/gate bin/images bin/docs-bundle bin/marks
 else
   echo "gate: shellcheck is not installed here, so the scripts are not linted"
 fi
