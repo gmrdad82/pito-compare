@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2 — 2026-10-14
+
+### Added
+
+- Each release carries pito-compare's documentation as docs-v1.0.2.tar.gz: an overview, install, eight guides with real commands and charts, the command line and data format reference, the library's API and this changelog.
+
 ## v1.0.1 — 2026-10-14
 
 ### Fixed
