@@ -1,0 +1,22 @@
+title = "SYNC TIME"
+unit = "SECONDS"
+better = "lower"
+subtitle = "SAMPLE DATA, ONE LAPTOP"
+date = "2026-10-14"
+suffix = " S"
+notes = [
+  "SAMPLE DATA FOR THIS README: A WIDE SPREAD SQUEEZES THE 2× TICKS AGAINST 1×, SO THEIR LABELS GIVE WAY.",
+]
+
+rows = [
+  { label = "FIRST SYNC", values = [0.4, 160] },
+  { label = "NO CHANGES", values = [0.02, 0.9] },
+  { label = "ONE FILE", values = [0.3, 0.45] },
+  { label = "RENAMES", values = [2.6, 1.4] },
+]
+
+[[parties]]
+name = "SYNC V2"
+
+[[parties]]
+name = "SYNC V1"

@@ -20,6 +20,7 @@ fn the_readme_images_are_what_pcmp_draws_from_the_examples() {
         "examples/latency.json",
         "examples/build.toml",
         "examples/frames.toml",
+        "examples/spread.toml",
         "bench/pcmp-vs-matplotlib.toml",
     ] {
         let path = root.join(data);

@@ -344,8 +344,9 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
     let mut ticks = vec![1.0];
     ticks.extend(decades.into_iter().filter(|d| *d <= bound));
     let mut grid = Vec::new();
+    let mut centre: Option<(i64, i64)> = None;
     for side in [1.0f64, -1.0] {
-        let mut edge: Option<i64> = None;
+        let mut edge = centre.map(|(l, r)| if side > 0.0 { r } else { l });
         for &t in &ticks {
             if t == 1.0 && side < 0.0 {
                 continue;
@@ -377,6 +378,9 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
             };
             if !fits || l < LEFT || r_ > WIDTH - LEFT {
                 continue;
+            }
+            if t == 1.0 {
+                centre = Some((l, r_));
             }
             edge = Some(if side > 0.0 { r_ } else { l });
             c.text(gx - Canvas::text_width(&a, 2) / 2, top - 62, &a, 2, DIM);
