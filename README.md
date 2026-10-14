@@ -6,29 +6,25 @@
 
 pito-compare draws comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars.
 
-## What it is
 
-Benchmark results read best as a picture, and a picture that looks the same every time. pito-compare is the chart drawer of [pito-codecs](https://github.com/gmrdad82/pito-codecs)' benchmarks made into a tool ([INSPIRATION.md](INSPIRATION.md)), with its exact look: the colours, the 5x7 pixel font, 1080 px wide.
+pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 13 to 23 ms from start to PNG on disk, 39 to 64 times faster than matplotlib drawing the same data.
 
-- **Paired bars:** every party's value on one shared linear axis from zero, the value printed beside each bar, and per row how many times faster or slower the first party is than the one it is compared with.
-- **Balanced ratios:** 1× in the middle, slower to the left and faster to the right on a symmetric log scale, so 3× slower is as long as 3× faster.
-- **Single bars:** one party's values, when there is nothing to compare.
-- **Groups and notes:** rows fall under headings, a row can carry a mark such as `*` or `†`, and notes under the chart explain them.
-- **No plotting library:** the canvas, the font and the PNG writer are a few hundred lines of Rust, so a chart is drawn the same on every machine.
+## At a glance
 
-pito-compare is also a Rust library (`use pito_compare::…`) that draws the same charts from data you build in code.
+| | pcmp |
+|---|---|
+| Time per chart, start to PNG on disk | **13.2 ms** single bars, **14.6 ms** balanced ratios, **22.6 ms** paired bars |
+| Against matplotlib 3.11, same data | **39× to 64× faster** (844 to 871 ms per chart) |
+| Peak memory | **13.3 MB** (matplotlib: 82.5 MB) |
+| Binary | **1.2 MB** (1,222,456 bytes, Linux x86_64, release profile, stripped) |
+| Code | **1,216** non-blank lines of Rust, canvas, pixel font and charts included |
+| Dependencies | **5** direct (png, serde, serde_json, toml, and clap for the command line); 40 crates in all, 27 for the library without clap |
+| Release build from clean | **21.6 s** |
+| Needs to run | nothing: one binary, no Python, no plotting library, no fonts on the system |
 
-![Paired bars: parse speed of parser v2 against parser v1 in two groups, with 2.5× faster, same speed and 3.2× slower tags](docs/images/speed-paired.png)
+Measured on 2026-10-14 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Rust 1.97.1, while the machine was busy with other work (load 62 on 32 threads); times are the median of 50 runs, a new process per chart. [How it was measured](#speed).
 
-![The balanced ratio chart of the same data: green bars to the right of 1× for faster rows, red to the left for slower ones](docs/images/speed-ratio.png)
-
-![Paired bars with three parties, lower is better: request latency of cache v2, cache v1 and no cache](docs/images/latency-paired.png)
-
-![Single bars: cold build time per platform for one party](docs/images/build-bars.png)
-
-These charts are drawn by pcmp from the sample data in [examples/](examples/); the numbers are made up.
-
-## Install
+## Install and first use
 
 pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file.
 
@@ -66,6 +62,105 @@ cargo install --locked --git https://github.com/gmrdad82/pito-compare --tag vX.Y
 ```
 
 Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags). pcmp needs nothing else to run.
+
+**First chart:** save this as `demo.toml`,
+
+```toml
+title = "PARSE SPEED"
+unit = "MEGABYTES PER SECOND"
+better = "higher"
+suffix = " MB/S"
+parties = [{ name = "PARSER V2" }, { name = "PARSER V1" }]
+rows = [
+  { label = "CONFIG FILES", values = [612, 240] },
+  { label = "LOG LINES", values = [455, 420] },
+  { label = "DATA DUMPS", values = [1210, 388] },
+]
+```
+
+then draw it:
+
+```
+$ pcmp demo.toml --out charts
+charts/demo-paired.png
+charts/demo-ratio.png
+```
+
+## The charts
+
+Every chart below is drawn by pcmp from a file in [examples/](examples/) or [bench/](bench/); the examples' numbers are made up, the bench's are measured. All of them share one dark look, 1080 px wide, so charts from different runs and projects sit side by side; the party colours are yours to pick.
+
+### Paired bars
+
+Every party's value on one shared linear axis from zero, the value beside each bar, and per row how many times faster or slower the first party is than the one it is compared with. Rows fall under group headings, a row can carry a mark such as `*` or `†`, and notes under the chart explain them.
+
+![Paired bars: parse speed of parser v2 against parser v1 in two groups, with 2.5× faster, same speed and 3.2× slower tags, a marked row and two notes](docs/images/speed-paired.png)
+
+### Three or more parties
+
+Any number of parties on the same axis. `versus` names the one the first party's tags compare with, so a third party can stand there for scale; `better = "lower"` turns the axis for times and latencies.
+
+![Paired bars with three parties, lower is better: request latency of cache v2, cache v1 and no cache, each row tagged against cache v1](docs/images/latency-paired.png)
+
+### Balanced ratios
+
+1× in the middle, slower to the left and faster to the right on a symmetric log scale, so 3× slower is as long as 3× faster. pcmp draws it next to the paired bars for any data with two or more parties.
+
+![The balanced ratio chart of the parse speed data: green bars to the right of 1× for faster rows, red to the left for slower ones](docs/images/speed-ratio.png)
+
+![The balanced ratio chart of the latency data: cache v2 against cache v1, lower is better](docs/images/latency-ratio.png)
+
+### Single bars
+
+One party's values, when there is nothing to compare. `--kind bars` with several parties draws one chart per party.
+
+![Single bars: cold build time per platform for one release build, in three groups](docs/images/build-bars.png)
+
+### Your colours
+
+A party's `colour` is any `#RRGGBB` or one of the chart's roles (`ours`, `theirs`, `dim`, `text`, `faster`, `slower`); the legend and the bars follow it.
+
+![Paired bars with four parties in custom colours: frame rate of Vulkan, Metal, DirectX 12 and OpenGL in three scenes, each row tagged Vulkan against OpenGL](docs/images/frames-paired.png)
+
+### Never a wrong chart
+
+Any character the font can't draw, an unknown key, a negative value or text too long for its line is refused with one line naming the file and the field, and no PNG is written:
+
+```
+$ pcmp bad.toml
+pcmp: bad.toml: groups[0].rows[0].values holds -612: values are finite and zero or more
+```
+
+### A library too
+
+The same charts from data built in Rust, with no command line and no clap ([the library](#the-library)).
+
+## Speed
+
+pcmp draws its own benchmark. [bench/speed.py](bench/speed.py) times pcmp drawing each chart kind, a new process per chart, 50 runs each, and takes the median; then it times Python 3.14 with matplotlib 3.11 drawing the same data as a similar dark 1080 px chart ([bench/matplotlib_chart.py](bench/matplotlib_chart.py)), the same way. [bench/pcmp-vs-matplotlib.toml](bench/pcmp-vs-matplotlib.toml) holds the numbers it printed, and pcmp drew them:
+
+![Paired bars, lower is better: start to PNG on disk, pcmp 22.6, 14.6 and 13.2 ms against matplotlib 871, 855 and 844 ms; 39×, 59× and 64× faster](docs/images/pcmp-vs-matplotlib-paired.png)
+
+![The balanced ratio chart of the same numbers: pcmp 39×, 59× and 64× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
+
+Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 235 to 282 ms per chart, over ten times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 13.3 MB for pcmp and 82.5 MB for matplotlib. The machine was busy with other work while it ran (load 62 on 32 threads), so a quiet machine is faster for both. To run it yourself, with matplotlib installed:
+
+```
+cargo build --release
+python3 bench/speed.py
+```
+
+## What it is
+
+Benchmark results read best as a picture, and a picture that looks the same every time. pito-compare is the chart drawer of [pito-codecs](https://github.com/gmrdad82/pito-codecs)' benchmarks made into a tool ([INSPIRATION.md](INSPIRATION.md)), with its exact look: the colours, the 5x7 pixel font, 1080 px wide. There is no plotting library: the canvas, the font and the PNG writer are a few hundred lines of Rust, so a chart is drawn the same, pixel for pixel, on every machine. pcmp's tests draw every chart in this README and compare it with the image here.
+
+## Part of PITO MD
+
+pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built for speed and used across its projects:
+
+- [pito-codecs](https://github.com/gmrdad82/pito-codecs): fast H.264, H.265, AAC and MP4 in pure Rust; its benchmark charts are where pito-compare's look comes from.
+- [prec](https://github.com/gmrdad82/prec): exact, deterministic recordings of terminal apps; it recorded the clip at the top of this page.
+- [pconv](https://github.com/gmrdad82/pconv): video deliveries and README GIFs in one short command; it made that clip a GIF.
 
 ## Use
 
@@ -166,7 +261,7 @@ cargo build --release
 bin/gate
 ```
 
-`bin/gate` runs what CI runs on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look. CI runs the gate on all three on every push and nightly, and builds the Linux release binary; a tag builds the three release binaries. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pconv ([NOTICE](NOTICE)).
+`bin/gate` runs what CI runs on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look. `python3 bench/speed.py` measures pcmp against matplotlib ([Speed](#speed)); nothing else needs Python. CI runs the gate on all three on every push and nightly, and builds the Linux release binary; a tag builds the three release binaries. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pconv ([NOTICE](NOTICE)).
 
 ## Licence
 

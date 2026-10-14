@@ -15,8 +15,14 @@ fn pixels(bytes: &[u8]) -> (u32, u32, Vec<u8>) {
 #[test]
 fn the_readme_images_are_what_pcmp_draws_from_the_examples() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    for data in ["speed.toml", "latency.json", "build.toml"] {
-        let path = root.join("examples").join(data);
+    for data in [
+        "examples/speed.toml",
+        "examples/latency.json",
+        "examples/build.toml",
+        "examples/frames.toml",
+        "bench/pcmp-vs-matplotlib.toml",
+    ] {
+        let path = root.join(data);
         let chart = Chart::load(&path).expect("example loads");
         let stem = path.file_stem().and_then(|s| s.to_str()).expect("stem");
         for (kind, canvas) in pito_compare::render(&chart, Kind::All).expect("renders") {

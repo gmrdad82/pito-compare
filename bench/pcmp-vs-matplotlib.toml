@@ -1,0 +1,27 @@
+title = "START TO PNG ON DISK"
+unit = "MILLISECONDS PER CHART"
+better = "lower"
+subtitle = "RYZEN 9 9950X, LINUX, MEDIAN OF 50"
+date = "2026-10-14"
+suffix = " MS"
+notes = [
+  "PCMP 0.1.0 AGAINST PYTHON 3.14 WITH MATPLOTLIB 3.11 DRAWING THE SAME DATA, A NEW PROCESS PER CHART (BENCH/SPEED.PY).",
+  "THE MACHINE WAS BUSY WITH OTHER WORK: LOAD 62 ON 32 THREADS.",
+]
+
+[[parties]]
+name = "PCMP"
+
+[[parties]]
+name = "MATPLOTLIB"
+
+[[groups]]
+name = "EXAMPLES/SPEED.TOML"
+rows = [
+  { label = "PAIRED BARS", values = [22.6, 870.9] },
+  { label = "BALANCED RATIOS", values = [14.6, 855.4] },
+]
+
+[[groups]]
+name = "EXAMPLES/BUILD.TOML"
+rows = [{ label = "SINGLE BARS", values = [13.2, 844.3] }]

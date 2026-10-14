@@ -1,0 +1,37 @@
+title = "FRAME RATE BY GRAPHICS API"
+unit = "FRAMES PER SECOND"
+better = "higher"
+subtitle = "SAMPLE DATA, ONE SCENE, 1440P"
+date = "2026-10-14"
+suffix = " FPS"
+decimals = 0
+versus = "OPENGL"
+notes = ["SAMPLE DATA FOR THIS README: EACH PARTY CARRIES ITS OWN COLOUR. EACH ROW COMPARES VULKAN WITH OPENGL."]
+
+[[parties]]
+name = "VULKAN"
+colour = "#C678DD"
+
+[[parties]]
+name = "METAL"
+colour = "#E5C07B"
+
+[[parties]]
+name = "DIRECTX 12"
+colour = "#56B6C2"
+
+[[parties]]
+name = "OPENGL"
+colour = "#8A92A0"
+
+[[rows]]
+label = "OPEN WORLD"
+values = [144, 138, 141, 96]
+
+[[rows]]
+label = "CITY AT NIGHT"
+values = [118, 121, 115, 74]
+
+[[rows]]
+label = "PARTICLES"
+values = [210, 196, 204, 188]
