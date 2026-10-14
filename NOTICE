@@ -16,6 +16,7 @@ bench's is measured by bench/speed.py:
 - docs/images/latency-paired.png and docs/images/latency-ratio.png: examples/latency.json
 - docs/images/build-bars.png: examples/build.toml
 - docs/images/frames-paired.png and docs/images/frames-ratio.png: examples/frames.toml
+- docs/images/spread-paired.png and docs/images/spread-ratio.png: examples/spread.toml
 - docs/images/pcmp-vs-matplotlib-paired.png and
   docs/images/pcmp-vs-matplotlib-ratio.png: bench/pcmp-vs-matplotlib.toml
 

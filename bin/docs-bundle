@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+out=${1:-tmp/docs}
+version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
+tag="v$version"
+stage=tmp/docs-bundle
+site="$stage/docs"
+
+rm -rf "$stage"
+mkdir -p "$site" "$out"
+cp -R docs/pages/. "$site/"
+
+help=$(NO_COLOR=1 cargo run --locked --quiet --bin pcmp -- --help)
+{
+  cat << EOF
+---
+title: Command line
+description: "Every argument and option of pcmp $version, generated from its clap definitions."
+sidebar:
+  order: 1
+---
+
+This page is generated from pcmp $version's own clap definitions (\`pcmp --help\`).
+
+## Usage
+
+\`\`\`
+$(printf '%s\n' "$help" | sed -n 's/^Usage: //p')
+\`\`\`
+
+EOF
+  printf '%s\n' "$help" | awk '
+    /^Arguments:$/ { print "## Arguments\n\n| Argument | What it does |\n|---|---|"; on = 1; next }
+    /^Options:$/ { print "\n## Options\n\n| Option | What it does |\n|---|---|"; on = 1; next }
+    on && /^$/ { on = 0; next }
+    on && /^  [^ ]/ {
+      line = substr($0, 3)
+      split_at = match(line, /  +/)
+      name = substr(line, 1, split_at - 1)
+      what = substr(line, split_at + RLENGTH)
+      gsub(/\|/, "\\|", what)
+      print "| `" name "` | " what " |"
+    }
+  '
+  cat << 'EOF'
+
+## Output
+
+Each chart is written to `<DIR>/<the data file's stem>-<kind>.png`, overwriting one already there, and its path is printed on its own line on stdout. With several parties, `--kind bars` writes one chart per party, `<stem>-bars-<party>.png`. The data file's fields are in [Formats](../formats/).
+
+## Exit codes
+
+| Code | When |
+|---|---|
+| `0` | Every chart was drawn. |
+| `1` | The data file couldn't be read or drawn, or a PNG couldn't be written: one line on stderr starting `pcmp: `, naming the file and, where it can, the field, line and column. |
+| `2` | The command line is wrong: clap's `error: …`, the usage line and `For more information, try '--help'.` on stderr. A bare `pcmp` answers this way too. |
+
+## Full help
+
+```
+EOF
+  printf '%s\n' "$help"
+  echo '```'
+} > "$site/reference/cli.md"
+
+{
+  cat << 'EOF'
+---
+title: Changelog
+description: "What changed in each pito-compare release."
+sidebar:
+  order: 99
+---
+EOF
+  sed '1{/^# /d}' CHANGELOG.md
+} > "$site/changelog.md"
+
+rm -rf target/doc
+cargo doc --no-deps --lib --no-default-features --locked --quiet
+mkdir -p "$site/api"
+cp -R target/doc/. "$site/api/"
+rm -f "$site/api/.lock"
+
+mkdir -p "$site/images"
+grep -rhoE 'images/[A-Za-z0-9._-]+\.(png|gif|webp)' "$site" --include='*.md' --exclude-dir=api | sed 's|.*images/||' | sort -u > "$stage/images"
+while read -r image; do
+  [ -f "docs/images/$image" ] || { echo "docs-bundle: a page uses images/$image, which docs/images doesn't have" >&2; exit 1; }
+  grep -q "docs/images/$image" NOTICE || { echo "docs-bundle: images/$image isn't named in NOTICE" >&2; exit 1; }
+  cp "docs/images/$image" "$site/images/"
+done < "$stage/images"
+rm "$stage/images"
+
+while read -r page; do
+  head -1 "$page" | grep -qx -- '---' || { echo "docs-bundle: $page has no frontmatter" >&2; exit 1; }
+done < <(find "$site" -path "$site/api" -prune -o -name '*.md' -print)
+if grep -rlF -e "$PWD" -e "${HOME:-/nonexistent}/" "$site" > /dev/null; then
+  echo "docs-bundle: a page carries a local path:" >&2
+  grep -rlF -e "$PWD" -e "${HOME:-/nonexistent}/" "$site" >&2
+  exit 1
+fi
+
+tar -czf "$out/docs-$tag.tar.gz" -C "$stage" docs
+echo "$out/docs-$tag.tar.gz"
