@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.1 — 2026-10-15
+
+### Changed
+
+- The README's speed numbers were measured again, the old and new release side by side: 5.5 to 7.1 ms per chart, 63× to 77× faster than matplotlib.
+- CI keeps its build cache from main only, so branch and tag runs no longer crowd it out.
+
 ## v1.1.0 — 2026-10-15
 
 ### Added
