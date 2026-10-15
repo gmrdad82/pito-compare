@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.1.0 — 2026-10-15
+
+### Added
+
+- The library's `render_each` hands each chart over as soon as it is drawn, so only one is held in memory at a time; pcmp now saves each chart before drawing the next.
+- The README's Licence section shows the PITO MD wordmark.
+
+### Changed
+
+- Charts are about 30% faster from start to PNG on disk (paired bars 9.3 to 6.6 ms): the PNGs are compressed at the default level, with the same pixels and about 1% more bytes.
+- A data file is refused in one line when a value is above 1e15, a ratio is outside 1e-15 to 1e15, or it names more than 12 parties.
+
+### Fixed
+
+- A huge value with `texts` no longer makes pcmp hang and fill memory.
+- pcmp refuses to write a chart through a symlink at its output path, so it never overwrites the file the link points to.
+
 ## v1.0.2 — 2026-10-14
 
 ### Added
