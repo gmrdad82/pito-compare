@@ -95,10 +95,7 @@ pub struct Canvas {
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
-        let mut px = Vec::with_capacity(width * height * 3);
-        for _ in 0..width * height {
-            px.extend_from_slice(&BG);
-        }
+        let px = BG.repeat(width * height);
         Self { width, height, px }
     }
 
@@ -155,7 +152,6 @@ impl Canvas {
         let mut enc = png::Encoder::new(out, self.width as u32, self.height as u32);
         enc.set_color(png::ColorType::Rgb);
         enc.set_depth(png::BitDepth::Eight);
-        enc.set_compression(png::Compression::High);
         let mut w = enc
             .write_header()
             .map_err(|e| Error::new(format!("cannot write the PNG: {e}")))?;
@@ -172,10 +168,16 @@ impl Canvas {
     }
 
     pub fn save(&self, path: &Path) -> Result<()> {
-        let bytes = self.png()?;
         if let Some(dir) = path.parent().filter(|d| !d.as_os_str().is_empty()) {
             std::fs::create_dir_all(dir)
                 .map_err(|e| Error::new(format!("cannot create {}: {e}", dir.display())))?;
+        }
+        let bytes = self.png()?;
+        if std::fs::symlink_metadata(path).is_ok_and(|m| m.file_type().is_symlink()) {
+            return Err(Error::new(format!(
+                "{} is a symlink; not writing through it",
+                path.display()
+            )));
         }
         std::fs::write(path, bytes)
             .map_err(|e| Error::new(format!("cannot write {}: {e}", path.display())))

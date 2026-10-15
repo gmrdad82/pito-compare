@@ -38,18 +38,30 @@ pub enum Kind {
 }
 
 pub fn render(chart: &Chart, kind: Kind) -> Result<Vec<(String, Canvas)>> {
-    chart.check()?;
     let mut out = Vec::new();
+    render_each(chart, kind, |name, canvas| {
+        out.push((name.to_string(), canvas));
+        Ok(())
+    })?;
+    Ok(out)
+}
+
+pub fn render_each(
+    chart: &Chart,
+    kind: Kind,
+    mut each: impl FnMut(&str, Canvas) -> Result<()>,
+) -> Result<()> {
+    chart.check()?;
     let single = chart.parties.len() == 1;
     if kind == Kind::Paired || (kind == Kind::All && !single) {
-        out.push(("paired".to_string(), paired(chart)?));
+        each("paired", paired(chart)?)?;
     }
     if kind == Kind::Ratio || (kind == Kind::All && !single) {
-        out.push(("ratio".to_string(), ratios(chart)?));
+        each("ratio", ratios(chart)?)?;
     }
     if kind == Kind::Bars || (kind == Kind::All && single) {
         if single {
-            out.push(("bars".to_string(), bars(chart, 0)?));
+            each("bars", bars(chart, 0)?)?;
         } else {
             let mut used = Vec::new();
             for (i, p) in chart.parties.iter().enumerate() {
@@ -57,12 +69,12 @@ pub fn render(chart: &Chart, kind: Kind) -> Result<Vec<(String, Canvas)>> {
                 if name == "bars-" || used.contains(&name) {
                     name = format!("bars-{}", i + 1);
                 }
-                used.push(name.clone());
-                out.push((name, bars(chart, i)?));
+                each(&name, bars(chart, i)?)?;
+                used.push(name);
             }
         }
     }
-    Ok(out)
+    Ok(())
 }
 
 fn slug(name: &str) -> String {

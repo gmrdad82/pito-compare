@@ -3,6 +3,7 @@ use std::path::Path;
 use serde::Deserialize;
 
 use crate::canvas::{self, Canvas, Color};
+use crate::draw::{MAX_PARTIES, MAX_VALUE};
 use crate::{Error, Result};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -209,6 +210,12 @@ impl Chart {
         if self.parties.is_empty() {
             return Err(Error::new("parties is empty: name one party or more"));
         }
+        if self.parties.len() > MAX_PARTIES {
+            return Err(Error::new(format!(
+                "parties has {} parties: a chart draws at most {MAX_PARTIES}",
+                self.parties.len()
+            )));
+        }
         for (i, p) in self.parties.iter().enumerate() {
             let at = format!("parties[{i}].name");
             if p.name.trim().is_empty() {
@@ -257,6 +264,11 @@ impl Chart {
                         "{at}.values holds {v}: values are finite and zero or more"
                     )));
                 }
+                if let Some(v) = row.values.iter().find(|v| **v > MAX_VALUE) {
+                    return Err(Error::new(format!(
+                        "{at}.values holds {v:e}: values are at most {MAX_VALUE:e}"
+                    )));
+                }
                 if !row.texts.is_empty() && row.texts.len() != self.parties.len() {
                     return Err(Error::new(format!(
                         "{at}.texts has {} texts for {} parties",
@@ -272,6 +284,19 @@ impl Chart {
                 {
                     return Err(Error::new(format!(
                         "{at}.ratio is {r}: a ratio is finite and above zero"
+                    )));
+                }
+                if let Some(r) = self.ratio(row)
+                    && !(1.0 / MAX_VALUE..=MAX_VALUE).contains(&r)
+                {
+                    let from = if row.ratio.is_some() {
+                        "ratio is"
+                    } else {
+                        "values give a ratio of"
+                    };
+                    return Err(Error::new(format!(
+                        "{at}.{from} {r:e}: a ratio is between {:e} and {MAX_VALUE:e}",
+                        1.0 / MAX_VALUE
                     )));
                 }
                 if row.values.is_empty() && row.ratio.is_none() {

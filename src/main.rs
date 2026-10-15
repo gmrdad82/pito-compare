@@ -75,8 +75,6 @@ impl From<KindArg> for Kind {
 
 fn run(cli: &Cli) -> Result<Vec<PathBuf>, String> {
     let chart = Chart::load(&cli.data).map_err(|e| e.to_string())?;
-    let charts = pito_compare::render(&chart, cli.kind.into())
-        .map_err(|e| format!("{}: {e}", cli.data.display()))?;
     let stem = cli
         .data
         .file_stem()
@@ -84,11 +82,19 @@ fn run(cli: &Cli) -> Result<Vec<PathBuf>, String> {
         .filter(|s| !s.is_empty())
         .unwrap_or("chart");
     let mut written = Vec::new();
-    for (name, canvas) in charts {
+    let mut failed = None;
+    pito_compare::render_each(&chart, cli.kind.into(), |name, canvas| {
         let path = cli.out.join(format!("{stem}-{name}.png"));
-        canvas.save(&path).map_err(|e| e.to_string())?;
+        canvas
+            .save(&path)
+            .inspect_err(|e| failed = Some(e.clone()))?;
         written.push(path);
-    }
+        Ok(())
+    })
+    .map_err(|e| match failed.take() {
+        Some(e) => e.to_string(),
+        None => format!("{}: {e}", cli.data.display()),
+    })?;
     Ok(written)
 }
 

@@ -70,6 +70,7 @@ let png: Vec<u8> = pito_compare::ratios(&chart)?.png()?;
 | `ratios(&chart)` | the balanced ratio chart |
 | `bars(&chart, party)` | one party's single bars |
 | `render(&chart, kind)` | what `pcmp --kind` draws, named |
+| `render_each(&chart, kind, f)` | the same, handing each chart to `f(name, canvas)` as soon as it is drawn, so only one is held at a time |
 
 Each returns a `Canvas`. `png()` encodes it to bytes, `write_png` writes it to any `Write`, and `save` writes a file. Errors are `pito_compare::Error`, whose message is the line pcmp would print.
 

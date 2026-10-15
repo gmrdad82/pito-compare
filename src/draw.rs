@@ -10,6 +10,8 @@ pub const GROUP: i64 = 50;
 pub const NOTE: i64 = 30;
 pub const BAR_STEP: i64 = 32;
 pub const MAX_HEIGHT: i64 = 32_000;
+pub const MAX_PARTIES: usize = 12;
+pub const MAX_VALUE: f64 = 1e15;
 
 fn wrap(text: &str, scale: usize) -> Vec<String> {
     let max = ((WIDTH - 2 * LEFT) / (6 * scale as i64)) as usize;
@@ -191,6 +193,11 @@ fn bar_chart(chart: &Chart, parties: &[usize], tags: bool) -> Result<Canvas> {
     let max = if max > 0.0 { max } else { 1.0 };
     let step = nice_step(max);
     let peak = (max / step).ceil() * step;
+    if !(peak.is_finite() && step.is_finite() && step > 0.0) {
+        return Err(Error::new(format!(
+            "the values reach {max:e}: an axis is drawn up to {MAX_VALUE:e}"
+        )));
+    }
     let mut aw = WIDTH - 2 * LEFT - 230;
     for r in chart.rows() {
         for &p in parties {

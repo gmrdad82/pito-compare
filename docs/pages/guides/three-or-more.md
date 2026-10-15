@@ -1,11 +1,11 @@
 ---
 title: Compare three or more
-description: "Put any number of parties on one axis, choose which one the tags compare with, and draw charts where lower is better."
+description: "Put up to 12 parties on one axis, choose which one the tags compare with, and draw charts where lower is better."
 sidebar:
   order: 2
 ---
 
-Paired bars take any number of parties. The first party is always the one being judged; `versus` names the one it is compared with, so a third party can stand there for scale without being in the tags.
+Paired bars take up to 12 parties. The first party is always the one being judged; `versus` names the one it is compared with, so a third party can stand there for scale without being in the tags.
 
 ## Write the data
 

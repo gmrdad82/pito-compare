@@ -4,22 +4,22 @@
 
 [![CI](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml/badge.svg)](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml) [![Version](https://img.shields.io/github/v/tag/gmrdad82/pito-compare)](https://github.com/gmrdad82/pito-compare/tags)
 
-pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 13 to 23 ms from start to PNG on disk, 39 to 64 times faster than matplotlib drawing the same data.
+pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 64 to 79 times faster than matplotlib drawing the same data.
 
 ## At a glance
 
 | | pcmp |
 |---|---|
-| Time per chart, start to PNG on disk | **13.2 ms** single bars, **14.6 ms** balanced ratios, **22.6 ms** paired bars |
-| Against matplotlib 3.11, same data | **39× to 64× faster** (844 to 871 ms per chart) |
-| Peak memory | **13.3 MB** (matplotlib: 82.5 MB) |
-| Binary | **1.2 MB** (1,222,456 bytes, Linux x86_64, release profile, stripped) |
-| Code | **1,216** non-blank lines of Rust, canvas, pixel font and charts included |
+| Time per chart, start to PNG on disk | **5.2 ms** single bars, **4.9 ms** balanced ratios, **6.4 ms** paired bars |
+| Against matplotlib 3.11, same data | **64× to 79× faster** (380 to 408 ms per chart) |
+| Peak memory | **13.4 MB** (matplotlib: 82.6 MB) |
+| Binary | **1.2 MB** (1,225,248 bytes, Linux x86_64, release profile, stripped) |
+| Code | **1,271** non-blank lines of Rust, canvas, pixel font and charts included |
 | Dependencies | **5** direct (png, serde, serde_json, toml, and clap for the command line); 40 crates in all, 27 for the library without clap |
 | Release build from clean | **21.6 s** |
 | Needs to run | nothing: one binary, no Python, no plotting library, no fonts on the system |
 
-Measured on 2026-10-14 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Rust 1.97.1, while the machine was busy with other work (load 62 on 32 threads); times are the median of 50 runs, a new process per chart. [How it was measured](#speed).
+Measured on 2026-10-15 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Rust 1.97.1, on a lightly loaded machine (load 2 on 32 threads); times are the median of 50 runs, a new process per chart. [How it was measured](#speed).
 
 ## Install and first use
 
@@ -95,7 +95,7 @@ Every party's value on one shared linear axis from zero, the value beside each b
 
 ### Three or more parties
 
-Any number of parties on the same axis. `versus` names the one the first party's tags compare with, so a third party can stand there for scale; `better = "lower"` turns the axis for times and latencies.
+Up to 12 parties on the same axis. `versus` names the one the first party's tags compare with, so a third party can stand there for scale; `better = "lower"` turns the axis for times and latencies.
 
 ![Paired bars with three parties, lower is better: request latency of cache v2, cache v1 and no cache, each row tagged against cache v1](docs/images/latency-paired.png)
 
@@ -136,11 +136,11 @@ The same charts from data built in Rust, with no command line and no clap ([the 
 
 pcmp draws its own benchmark. [bench/speed.py](bench/speed.py) times pcmp drawing each chart kind, a new process per chart, 50 runs each, and takes the median; then it times Python 3.14 with matplotlib 3.11 drawing the same data as a similar dark 1080 px chart ([bench/matplotlib_chart.py](bench/matplotlib_chart.py)), the same way. [bench/pcmp-vs-matplotlib.toml](bench/pcmp-vs-matplotlib.toml) holds the numbers it printed, and pcmp drew them:
 
-![Paired bars, lower is better: start to PNG on disk, pcmp 22.6, 14.6 and 13.2 ms against matplotlib 871, 855 and 844 ms; 39×, 59× and 64× faster](docs/images/pcmp-vs-matplotlib-paired.png)
+![Paired bars, lower is better: start to PNG on disk, pcmp 6.4, 4.9 and 5.2 ms against matplotlib 408, 387 and 380 ms; 64×, 79× and 73× faster](docs/images/pcmp-vs-matplotlib-paired.png)
 
-![The balanced ratio chart of the same numbers: pcmp 39×, 59× and 64× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
+![The balanced ratio chart of the same numbers: pcmp 64×, 79× and 73× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
 
-Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 235 to 282 ms per chart, over ten times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 13.3 MB for pcmp and 82.5 MB for matplotlib. The machine was busy with other work while it ran (load 62 on 32 threads), so a quiet machine is faster for both. To run it yourself, with matplotlib installed:
+Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 126 to 151 ms per chart, over twenty times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 13.4 MB for pcmp and 82.6 MB for matplotlib. The machine was lightly loaded while it ran (load 2 on 32 threads). To run it yourself, with matplotlib installed:
 
 ```
 cargo build --release
@@ -169,7 +169,7 @@ pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars]
 - `--out` is the folder the PNGs go to, made if missing; the current folder by default.
 - `--kind all` (the default) draws single bars for one party, and the paired and ratio charts for two or more. `paired`, `ratio` and `bars` draw one kind; `bars` with several parties draws one chart per party.
 
-Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there, and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party.
+Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there (never through a symlink), and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party.
 
 ### Exit codes
 
@@ -210,7 +210,7 @@ The same in JSON is an object with the same keys: `{"title": "PARSE SPEED", "bet
 | `unit` | no | What the values measure; the chart adds "HIGHER IS BETTER" or "LOWER IS BETTER". |
 | `better` | yes | `"higher"` or `"lower"`: which way is better, so which side counts as faster. |
 | `subtitle`, `date` | no | The small line under the unit, such as the machine and the date, joined with a comma. |
-| `parties` | yes | Who is compared, in the order their bars are drawn. Each has a `name` and an optional `colour`. |
+| `parties` | yes | Who is compared, in the order their bars are drawn, one to 12. Each has a `name` and an optional `colour`. |
 | `versus` | no | The name of the party the first one is compared with; the second party by default. |
 | `rows` | one of the two | The rows, with no group headings. |
 | `groups` | one of the two | Groups of rows, each with an optional `name` drawn as a heading and its `rows`. |
@@ -219,13 +219,13 @@ The same in JSON is an object with the same keys: `{"title": "PARSE SPEED", "bet
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | `{ better = "FASTER", worse = "SLOWER", same = "SAME SPEED" }`, the words of the tags and the ratio chart. |
 
-Each row has a `label`, its `values` (one per party, zero or more) and optionally a `mark` written after the label, `texts` to print in place of the values (one per party), and a `ratio` to use in place of the one the values give.
+Each row has a `label`, its `values` (one per party, zero to 1e15) and optionally a `mark` written after the label, `texts` to print in place of the values (one per party), and a `ratio` to use in place of the one the values give.
 
 A party's `colour` is `#RRGGBB` or one of the chart's roles: `ours` (orange, the first party's default), `theirs` (blue, the second's), `dim` (grey, the third's), `text` (white, the fourth's), `faster` (green) and `slower` (red).
 
 How the comparison reads: with `better = "higher"`, the first party is `first / versus` times faster; with `"lower"`, `versus / first`. A row whose ratio rounds to 1.0 says "SAME SPEED". The ratio chart needs both compared values above zero, or a `ratio`.
 
-The chart font draws A to Z (lower case is drawn in capitals), 0 to 9, space and `. , : ; - + / ( ) % = < > ' _ | × * †`. Any other character, an unknown key, a value that is negative or not a number, or text too long for its line is refused with the field it is in, so a chart never comes out wrong.
+The chart font draws A to Z (lower case is drawn in capitals), 0 to 9, space and `. , : ; - + / ( ) % = < > ' _ | × * †`. Any other character, an unknown key, a value that is negative, not a number or above 1e15, a ratio outside 1e-15 to 1e15, more than 12 parties, or text too long for its line is refused with the field it is in, so a chart never comes out wrong.
 
 ### The library
 

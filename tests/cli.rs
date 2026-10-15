@@ -40,8 +40,15 @@ fn a_bad_data_file_is_one_line_and_exit_1() {
         r#"{"title":"X","better":"higher","parties":[{"name":"A"}],"rows":[{"label":"R","values":[1,2]}]}"#,
     )
     .expect("write");
+    let huge = dir.join("huge.toml");
+    std::fs::write(
+        &huge,
+        "title = \"X\"\nbetter = \"higher\"\nparties = [{ name = \"A\" }, { name = \"B\" }]\nrows = [{ label = \"R\", values = [1.7e308, 1.0], texts = [\"A\", \"B\"] }]\n",
+    )
+    .expect("write");
     for args in [
         vec![data.to_str().expect("utf-8")],
+        vec![huge.to_str().expect("utf-8")],
         vec!["no-such-file.toml"],
     ] {
         let out = pcmp(&args);
@@ -69,4 +76,22 @@ fn each_chart_is_written_and_its_path_printed() {
         let bytes = std::fs::read(line).expect("png written");
         assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
     }
+}
+
+#[cfg(unix)]
+#[test]
+fn a_link_in_the_way_is_refused() {
+    let dir = scratch("link");
+    let target = dir.join("keep.txt");
+    std::fs::write(&target, "keep").expect("write");
+    std::os::unix::fs::symlink(&target, dir.join("speed-paired.png")).expect("link");
+    let out = pcmp(&[
+        "examples/speed.toml",
+        "--kind",
+        "paired",
+        "--out",
+        dir.to_str().expect("utf-8"),
+    ]);
+    assert_eq!(out.status.code(), Some(1));
+    assert_eq!(std::fs::read_to_string(&target).expect("read"), "keep");
 }

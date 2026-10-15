@@ -49,7 +49,7 @@ rows = [
 | `unit` | no | What the values measure; the chart adds `HIGHER IS BETTER` or `LOWER IS BETTER`. |
 | `better` | yes | `"higher"` or `"lower"`: which way is better, so which side counts as faster. |
 | `subtitle`, `date` | no | The small line under the unit, such as the machine and the date, joined with a comma. |
-| `parties` | yes | Who is compared, in the order their bars are drawn: one or more. |
+| `parties` | yes | Who is compared, in the order their bars are drawn: one to 12. |
 | `versus` | no | The name of the party the first one is compared with; the second party by default. |
 | `rows` | one of the two | The rows, with no group headings. |
 | `groups` | one of the two | Groups of rows, each with an optional heading. |
@@ -79,10 +79,10 @@ Any other key is refused, so a misspelt key never goes unnoticed.
 | Key | Required | What it is |
 |---|---|---|
 | `label` | yes | The row's label. |
-| `values` | see below | One number per party, in the parties' order: finite and zero or more. |
+| `values` | see below | One number per party, in the parties' order: finite, zero or more and at most 1e15. |
 | `mark` | no | Written after the label, such as `*` or `†`, for a note to explain. |
 | `texts` | no | One string per party, printed in place of the values; the bars still follow `values`. |
-| `ratio` | see below | The row's ratio in place of the one its values give: finite and above zero. Above 1 means the first party wins. |
+| `ratio` | see below | The row's ratio in place of the one its values give: finite and between 1e-15 and 1e15; a ratio the values give is held to the same range. Above 1 means the first party wins. |
 
 A row needs `values`, a `ratio` or both. The paired and single bars need `values`; the ratio chart needs a `ratio` or two compared values above zero.
 
@@ -106,7 +106,7 @@ Every text in the chart is drawn in a 5x7 pixel font: A to Z (lower case is draw
 
 ### The PNGs
 
-Each chart is a PNG, 1080 px wide, written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten.
+Each chart is a PNG, 1080 px wide, written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
 
 | `--kind` | One party | Two or more parties |
 |---|---|---|
