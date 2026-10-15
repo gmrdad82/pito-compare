@@ -4,22 +4,22 @@
 
 [![CI](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml/badge.svg)](https://github.com/gmrdad82/pito-compare/actions/workflows/ci.yml) [![Version](https://img.shields.io/github/v/tag/gmrdad82/pito-compare)](https://github.com/gmrdad82/pito-compare/tags)
 
-pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 64 to 79 times faster than matplotlib drawing the same data.
+pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 63 to 77 times faster than matplotlib drawing the same data.
 
 ## At a glance
 
 | | pcmp |
 |---|---|
-| Time per chart, start to PNG on disk | **5.2 ms** single bars, **4.9 ms** balanced ratios, **6.4 ms** paired bars |
-| Against matplotlib 3.11, same data | **64× to 79× faster** (380 to 408 ms per chart) |
-| Peak memory | **13.4 MB** (matplotlib: 82.6 MB) |
+| Time per chart, start to PNG on disk | **5.7 ms** single bars, **5.5 ms** balanced ratios, **7.1 ms** paired bars |
+| Against matplotlib 3.11, same data | **63× to 77× faster** (408 to 447 ms per chart) |
+| Peak memory | **12.9 MB** (matplotlib: 82.5 MB) |
 | Binary | **1.2 MB** (1,225,248 bytes, Linux x86_64, release profile, stripped) |
 | Code | **1,271** non-blank lines of Rust, canvas, pixel font and charts included |
 | Dependencies | **5** direct (png, serde, serde_json, toml, and clap for the command line); 40 crates in all, 27 for the library without clap |
 | Release build from clean | **21.6 s** |
 | Needs to run | nothing: one binary, no Python, no plotting library, no fonts on the system |
 
-Measured on 2026-10-15 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Rust 1.97.1, on a lightly loaded machine (load 2 on 32 threads); times are the median of 50 runs, a new process per chart. [How it was measured](#speed).
+Measured on 2026-10-15 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Rust 1.97.1, on a lightly loaded machine (load 4 on 32 threads); times are the median of 50 runs, a new process per chart. [How it was measured](#speed).
 
 ## Install and first use
 
@@ -136,11 +136,11 @@ The same charts from data built in Rust, with no command line and no clap ([the 
 
 pcmp draws its own benchmark. [bench/speed.py](bench/speed.py) times pcmp drawing each chart kind, a new process per chart, 50 runs each, and takes the median; then it times Python 3.14 with matplotlib 3.11 drawing the same data as a similar dark 1080 px chart ([bench/matplotlib_chart.py](bench/matplotlib_chart.py)), the same way. [bench/pcmp-vs-matplotlib.toml](bench/pcmp-vs-matplotlib.toml) holds the numbers it printed, and pcmp drew them:
 
-![Paired bars, lower is better: start to PNG on disk, pcmp 6.4, 4.9 and 5.2 ms against matplotlib 408, 387 and 380 ms; 64×, 79× and 73× faster](docs/images/pcmp-vs-matplotlib-paired.png)
+![Paired bars, lower is better: start to PNG on disk, pcmp 7.1, 5.5 and 5.7 ms against matplotlib 447, 422 and 408 ms; 63×, 77× and 72× faster](docs/images/pcmp-vs-matplotlib-paired.png)
 
-![The balanced ratio chart of the same numbers: pcmp 64×, 79× and 73× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
+![The balanced ratio chart of the same numbers: pcmp 63×, 77× and 72× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
 
-Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 126 to 151 ms per chart, over twenty times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 13.4 MB for pcmp and 82.6 MB for matplotlib. The machine was lightly loaded while it ran (load 2 on 32 threads). To run it yourself, with matplotlib installed:
+Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 129 to 162 ms per chart, over twenty times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 12.9 MB for pcmp and 82.5 MB for matplotlib. The machine was lightly loaded while it ran (load 4 on 32 threads). To run it yourself, with matplotlib installed:
 
 ```
 cargo build --release

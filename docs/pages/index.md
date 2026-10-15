@@ -7,7 +7,7 @@ sidebar:
 
 ![A terminal: cat demo.toml shows a small TOML file with a title, a unit, higher is better, two parties and three rows; pcmp demo.toml --out charts prints charts/demo-paired.png and charts/demo-ratio.png; pcmp demo.toml --kind bars --out charts prints one PNG per party; file shows a 1080 px wide PNG.](images/draw.gif)
 
-pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 64 to 79 times faster than matplotlib drawing the same data.
+pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 63 to 77 times faster than matplotlib drawing the same data.
 
 ![Paired bars: parse speed of parser v2 against parser v1 in two groups, with 2.5× faster, same speed and 3.2× slower tags, a marked row and two notes](images/speed-paired.png)
 
@@ -15,9 +15,9 @@ pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https:
 
 | | pcmp |
 |---|---|
-| Time per chart, start to PNG on disk | **5.2 ms** single bars, **4.9 ms** balanced ratios, **6.4 ms** paired bars |
-| Against matplotlib 3.11, same data | **64× to 79× faster** (380 to 408 ms per chart) |
-| Peak memory | **13.4 MB** (matplotlib: 82.6 MB) |
+| Time per chart, start to PNG on disk | **5.7 ms** single bars, **5.5 ms** balanced ratios, **7.1 ms** paired bars |
+| Against matplotlib 3.11, same data | **63× to 77× faster** (408 to 447 ms per chart) |
+| Peak memory | **12.9 MB** (matplotlib: 82.5 MB) |
 | Binary | **1.2 MB** (Linux x86_64, release profile, stripped) |
 | Dependencies | **5** direct: png, serde, serde_json, toml, and clap for the command line |
 | Needs to run | nothing: one binary, no Python, no plotting library, no fonts on the system |

@@ -6,7 +6,7 @@ date = "2026-10-15"
 suffix = " MS"
 notes = [
   "PCMP 1.1.0 AGAINST PYTHON 3.14 WITH MATPLOTLIB 3.11 DRAWING THE SAME DATA, A NEW PROCESS PER CHART (BENCH/SPEED.PY).",
-  "THE MACHINE WAS LIGHTLY LOADED: LOAD 2 ON 32 THREADS.",
+  "THE MACHINE WAS LIGHTLY LOADED: LOAD 4 ON 32 THREADS.",
 ]
 
 [[parties]]
@@ -18,10 +18,10 @@ name = "MATPLOTLIB"
 [[groups]]
 name = "EXAMPLES/SPEED.TOML"
 rows = [
-  { label = "PAIRED BARS", values = [6.4, 407.5] },
-  { label = "BALANCED RATIOS", values = [4.9, 386.6] },
+  { label = "PAIRED BARS", values = [7.1, 446.9] },
+  { label = "BALANCED RATIOS", values = [5.5, 421.9] },
 ]
 
 [[groups]]
 name = "EXAMPLES/BUILD.TOML"
-rows = [{ label = "SINGLE BARS", values = [5.2, 380.1] }]
+rows = [{ label = "SINGLE BARS", values = [5.7, 408.1] }]
