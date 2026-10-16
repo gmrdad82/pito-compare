@@ -22,7 +22,8 @@ bench's is measured by bench/speed.py:
 
 Terminal clip recorded by prec from this repository's own shot
 (render/terminal.toml and the tape and data in render/terminal/), made a GIF by
-pconv, under the MIT licence like the code:
+pcod (pito-codecs, https://github.com/gmrdad82/pito-codecs), under the MIT
+licence like the code:
 - docs/images/draw.gif: the draw shot
 
 The PITO MD wordmark in assets/marks/pitomd-wordmark.svg, shown at the README's

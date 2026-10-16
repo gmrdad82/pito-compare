@@ -155,9 +155,8 @@ Benchmark results read best as a picture, and a picture that looks the same ever
 
 pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built for speed and used across its projects:
 
-- [pito-codecs](https://github.com/gmrdad82/pito-codecs): fast H.264, H.265, AAC and MP4 in pure Rust; its benchmark charts are where pito-compare's look comes from.
+- [pito-codecs](https://github.com/gmrdad82/pito-codecs): fast H.264, H.265, AAC and MP4 in pure Rust; its benchmark charts are where pito-compare's look comes from, and its `pcod` command made that clip a GIF.
 - [prec](https://github.com/gmrdad82/prec): exact, deterministic recordings of terminal apps; it recorded the clip at the top of this page.
-- [pconv](https://github.com/gmrdad82/pconv): video deliveries and README GIFs in one short command; it made that clip a GIF.
 
 ## Use
 
@@ -258,7 +257,7 @@ cargo build --release
 bin/gate
 ```
 
-`bin/gate` runs what CI runs on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; a tag attaches them to its release as `docs-vX.Y.Z.tar.gz`. `python3 bench/speed.py` measures pcmp against matplotlib ([Speed](#speed)); nothing else needs Python. CI runs the gate on all three on every push and nightly, and builds the Linux release binary; a tag builds the three release binaries. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pconv ([NOTICE](NOTICE)).
+`bin/gate` runs what CI runs on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; a tag attaches them to its release as `docs-vX.Y.Z.tar.gz`. `python3 bench/speed.py` measures pcmp against matplotlib ([Speed](#speed)); nothing else needs Python. CI runs the gate on all three on every push and nightly, and builds the Linux release binary; a tag builds the three release binaries. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pcod from [pito-codecs](https://github.com/gmrdad82/pito-codecs) ([NOTICE](NOTICE)).
 
 ## Licence
 
