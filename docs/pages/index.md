@@ -40,5 +40,5 @@ It comes two ways: `pcmp`, the command line, and `pito_compare`, a Rust library 
 - [Show text or your own ratio](guides/texts-and-ratios/) in place of a value.
 - [Read a refusal](guides/refusals/): what pcmp says when a data file is wrong.
 - [Draw from Rust](guides/library/) with the library.
-- [Measure pcmp against matplotlib](guides/benchmark/).
+- [See pcmp against matplotlib](guides/benchmark/).
 - Reference: [the command line](reference/cli/), [the data format](reference/formats/), [the API](api/pito_compare/index.html), [the changelog](changelog/).

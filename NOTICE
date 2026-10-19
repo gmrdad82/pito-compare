@@ -11,7 +11,7 @@ from, and what covers it.
 
 Charts drawn by pcmp from the data in examples/ and bench/ (bin/images), under the
 MIT licence like the code; the examples' data is made up for the README, the
-bench's is measured by bench/speed.py:
+bench's was measured once against matplotlib on 2026-10-15:
 - docs/images/speed-paired.png and docs/images/speed-ratio.png: examples/speed.toml
 - docs/images/latency-paired.png and docs/images/latency-ratio.png: examples/latency.json
 - docs/images/build-bars.png: examples/build.toml

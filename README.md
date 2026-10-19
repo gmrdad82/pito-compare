@@ -134,18 +134,13 @@ The same charts from data built in Rust, with no command line and no clap ([the 
 
 ## Speed
 
-pcmp draws its own benchmark. [bench/speed.py](bench/speed.py) times pcmp drawing each chart kind, a new process per chart, 50 runs each, and takes the median; then it times Python 3.14 with matplotlib 3.11 drawing the same data as a similar dark 1080 px chart ([bench/matplotlib_chart.py](bench/matplotlib_chart.py)), the same way. [bench/pcmp-vs-matplotlib.toml](bench/pcmp-vs-matplotlib.toml) holds the numbers it printed, and pcmp drew them:
+pcmp draws its own benchmark. pcmp was timed drawing each chart kind, a new process per chart, 50 runs each, taking the median; then matplotlib 3.11 was timed drawing the same data as a similar dark 1080 px chart, the same way. [bench/pcmp-vs-matplotlib.toml](bench/pcmp-vs-matplotlib.toml) holds the numbers, and pcmp drew them:
 
 ![Paired bars, lower is better: start to PNG on disk, pcmp 7.1, 5.5 and 5.7 ms against matplotlib 447, 422 and 408 ms; 63×, 77× and 72× faster](docs/images/pcmp-vs-matplotlib-paired.png)
 
 ![The balanced ratio chart of the same numbers: pcmp 63×, 77× and 72× faster than matplotlib](docs/images/pcmp-vs-matplotlib-ratio.png)
 
-Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 129 to 162 ms per chart, over twenty times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 12.9 MB for pcmp and 82.5 MB for matplotlib. The machine was lightly loaded while it ran (load 4 on 32 threads). To run it yourself, with matplotlib installed:
-
-```
-cargo build --release
-python3 bench/speed.py
-```
+Most of matplotlib's time is Python and its import, but not all: in one run, drawing and saving after the import took 129 to 162 ms per chart, over twenty times pcmp's whole run. The matplotlib chart is the plainer of the two (no tags, no pixel font), which favours it. Peak memory was 12.9 MB for pcmp and 82.5 MB for matplotlib. The machine was lightly loaded while it ran (load 4 on 32 threads). It was measured once, on 2026-10-15; the repository keeps the numbers, not the scripts that timed them.
 
 ## What it is
 
@@ -257,7 +252,7 @@ cargo build --release
 bin/gate
 ```
 
-`bin/gate` is the gate, on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; each release carries them as `docs-vX.Y.Z.tar.gz`. `python3 bench/speed.py` measures pcmp against matplotlib ([Speed](#speed)); nothing else needs Python. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pcod from [pito-codecs](https://github.com/gmrdad82/pito-codecs) ([NOTICE](NOTICE)).
+`bin/gate` is the gate, on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; each release carries them as `docs-vX.Y.Z.tar.gz`. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pcod from [pito-codecs](https://github.com/gmrdad82/pito-codecs) ([NOTICE](NOTICE)).
 
 ## Licence
 

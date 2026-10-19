@@ -1,28 +1,15 @@
 ---
-title: Measure pcmp against matplotlib
-description: "Run the benchmark that times pcmp against matplotlib drawing the same data, and read its numbers."
+title: pcmp against matplotlib
+description: "How pcmp was timed against matplotlib drawing the same data, and its numbers."
 sidebar:
   order: 8
 ---
 
-pcmp draws its own benchmark. `bench/speed.py` in the repository times pcmp drawing each chart kind, then matplotlib drawing the same data as a similar dark 1080 px chart, and prints the numbers.
-
-## Run it
-
-On Linux or macOS, you need a clone of the repository, Rust 1.97 or newer, and Python with matplotlib installed:
-
-```
-git clone https://github.com/gmrdad82/pito-compare
-cd pito-compare
-cargo build --release
-python3 bench/speed.py
-```
-
-For each chart kind it starts a new process per chart, 50 times, and takes the median, for pcmp and for matplotlib alike. Nothing but the benchmark needs Python.
+pcmp draws its own benchmark. pcmp was timed drawing each chart kind, then matplotlib drawing the same data as a similar dark 1080 px chart. For each chart kind it started a new process per chart, 50 times, and took the median, for pcmp and for matplotlib alike. It was measured once; the repository keeps the numbers, not the scripts that timed them.
 
 ## What it measured
 
-On 2026-10-15, on an AMD Ryzen 9 9950X (32 threads) under Linux, with Python 3.14 and matplotlib 3.11, on a lightly loaded machine (load 4 on 32 threads). `bench/pcmp-vs-matplotlib.toml` holds the numbers it printed, and pcmp drew them:
+On 2026-10-15, on an AMD Ryzen 9 9950X (32 threads) under Linux, with matplotlib 3.11, on a lightly loaded machine (load 4 on 32 threads). `bench/pcmp-vs-matplotlib.toml` holds the numbers, and pcmp drew them:
 
 ![Paired bars, lower is better: start to PNG on disk, pcmp 7.1, 5.5 and 5.7 ms against matplotlib 447, 422 and 408 ms; 63×, 77× and 72× faster](../images/pcmp-vs-matplotlib-paired.png)
 
