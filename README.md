@@ -6,6 +6,8 @@
 
 pito-compare draws benchmark comparison charts as PNGs, part of [PITO MD](https://pitomd.com). You write the numbers in a small JSON or TOML file, and `pcmp` draws them as dark, crisp charts in a hand-drawn pixel font: two or more parties side by side on one axis, how many times faster or slower one is than another, or plain bars. A chart takes 5 to 7 ms from start to PNG on disk, 63 to 77 times faster than matplotlib drawing the same data.
 
+Got questions or doubts? Ping me on Discord: https://discord.gg/XsNcn3kYzn
+
 ## At a glance
 
 | | pcmp |
