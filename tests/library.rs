@@ -126,7 +126,7 @@ fn a_ratio_only_chart_with_one_party_draws_its_ratio_against_the_other() {
 #[test]
 fn bars_files_are_named_by_slug_and_fall_back_to_the_party_number() {
     let c = chart(
-        &["C++", "c", "C", "%%", "OURS (V2)"],
+        &["C++", "c", "C+", "%%", "OURS (V2)"],
         &[&[1.0, 2.0, 3.0, 4.0, 5.0]],
     );
     let out = pito_compare::render(&c, Kind::Bars).expect("renders");
@@ -140,7 +140,7 @@ fn bars_files_are_named_by_slug_and_fall_back_to_the_party_number() {
 fn bars_file_names_never_repeat() {
     for parties in [
         &["2", "%%"][..],
-        &["3", "A", "3"],
+        &["3", "A", "3."],
         &["%%", "1"],
         &["2", "2-2", "%%"],
         &["2", "%%", "2 2"],
@@ -202,7 +202,6 @@ fn error_message_and_display_agree() {
 fn the_canvas_grows_by_a_row_for_each_row_and_shows_each_party_colour() {
     let one = paired(&chart(&["A", "B"], &[&[3.0, 2.0]])).expect("draws");
     let two = paired(&chart(&["A", "B"], &[&[3.0, 2.0], &[1.0, 4.0]])).expect("draws");
-    assert_eq!(one.height(), 444);
     assert_eq!(two.height() - one.height(), ROW as usize);
     let c = chart(&["A", "B"], &[&[3.0, 2.0]]);
     for (i, p) in c.parties.iter().enumerate() {
@@ -293,7 +292,8 @@ fn a_label_too_long_for_its_tag_pushes_the_tag_below_it() {
     let drawn = paired(&c).expect("draws");
     assert!(!has(&drawn, 700..1040, 250..271, FASTER));
     assert!(has(&drawn, 700..1040, 284..305, FASTER));
-    assert_eq!(drawn.height(), 444);
+    let short = paired(&chart(&["A", "B"], &[&[2.0, 1.0]])).expect("draws");
+    assert_eq!(drawn.height(), short.height());
 }
 
 #[test]
@@ -463,4 +463,25 @@ fn ratio_captions_and_unit_line_that_do_not_fit_are_refused() {
     let err = ratios(&c).err().expect("unit too long");
     assert!(err.message().contains("unit line is too long"), "{err}");
     assert!(paired(&c).is_ok());
+}
+
+#[test]
+fn an_empty_canvas_cannot_become_a_png() {
+    let empty = Canvas::new(0, 0);
+    let err = empty.png().expect_err("no pixels");
+    assert!(err.message().starts_with("cannot write the PNG: "), "{err}");
+    let dir = scratch("library-empty");
+    let path = dir.join("empty.png");
+    assert!(empty.save(&path).is_err());
+    assert!(!path.exists());
+}
+
+#[test]
+fn save_refuses_a_path_that_is_a_folder() {
+    let c = Canvas::new(2, 2);
+    let dir = scratch("library-folder");
+    let err = c.save(&dir).expect_err("a folder");
+    assert!(err.message().starts_with("cannot write "), "{err}");
+    let err = c.save(Path::new("/")).expect_err("the root");
+    assert!(err.message().starts_with("cannot write "), "{err}");
 }

@@ -247,7 +247,7 @@ fn bars_for_parties_whose_names_collide_print_distinct_paths() {
     let data = dir.join("clash.toml");
     std::fs::write(
         &data,
-        "title = \"X\"\nbetter = \"higher\"\nparties = [{ name = \"2\" }, { name = \"%%\" }, { name = \"3\" }, { name = \"3\" }]\nrows = [{ label = \"R\", values = [1.0, 2.0, 3.0, 4.0] }]\n",
+        "title = \"X\"\nbetter = \"higher\"\nparties = [{ name = \"2\" }, { name = \"%%\" }, { name = \"3\" }, { name = \"3.\" }]\nrows = [{ label = \"R\", values = [1.0, 2.0, 3.0, 4.0] }]\n",
     )
     .expect("write");
     let out_dir = dir.join("out");
@@ -278,4 +278,58 @@ fn bars_for_parties_whose_names_collide_print_distinct_paths() {
             "clash-bars-4.png",
         ]
     );
+}
+
+#[test]
+fn a_chart_that_loads_but_cannot_be_drawn_names_the_data_file() {
+    let dir = scratch("tall");
+    let data = dir.join("tall.toml");
+    let rows: Vec<String> = (0..300)
+        .map(|i| format!("{{ label = \"R{i}\", values = [1.0, 2.0] }}"))
+        .collect();
+    std::fs::write(
+        &data,
+        format!(
+            "title = \"X\"\nbetter = \"higher\"\nparties = [{{ name = \"A\" }}, {{ name = \"B\" }}]\nrows = [{}]\n",
+            rows.join(", ")
+        ),
+    )
+    .expect("write");
+    let out_dir = dir.join("out");
+    let out = pcmp(&[
+        data.to_str().expect("utf-8"),
+        "--kind",
+        "paired",
+        "--out",
+        out_dir.to_str().expect("utf-8"),
+    ]);
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(out.status.code(), Some(1), "{err}");
+    assert!(out.stdout.is_empty());
+    assert_eq!(err.lines().count(), 1, "{err}");
+    assert!(
+        err.starts_with(&format!("pcmp: {}: ", data.display())),
+        "{err}"
+    );
+    assert!(err.contains("px tall"), "{err}");
+    assert!(!out_dir.exists());
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn a_full_stdout_still_writes_every_chart() {
+    let dir = scratch("full");
+    let full = std::fs::OpenOptions::new()
+        .write(true)
+        .open("/dev/full")
+        .expect("/dev/full");
+    let status = Command::new(env!("CARGO_BIN_EXE_pcmp"))
+        .args(["examples/speed.toml", "--out"])
+        .arg(&dir)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdout(full)
+        .status()
+        .expect("pcmp runs");
+    assert_eq!(status.code(), Some(0));
+    assert_eq!(files(&dir), ["speed-paired.png", "speed-ratio.png"]);
 }

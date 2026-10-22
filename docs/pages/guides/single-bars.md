@@ -56,4 +56,4 @@ charts/speed-bars-parser-v2.png
 charts/speed-bars-parser-v1.png
 ```
 
-A party's name becomes lower case with dashes in the file name. A name with no letters or digits, or one that another party already took, is numbered by its place among the parties instead, such as `speed-bars-2.png` for the second.
+A party's name becomes lower case with dashes in the file name. A name with no letters or digits, or one that another party already took, is numbered by its place among the parties instead, such as `speed-bars-2.png` for the second, or `speed-bars-2-2.png` when another party already took that name too (parties `2` and `%%`).

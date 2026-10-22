@@ -132,13 +132,21 @@ impl Chart {
         let format = match path.extension().and_then(|e| e.to_str()) {
             Some(e) if e.eq_ignore_ascii_case("json") => Format::Json,
             Some(e) if e.eq_ignore_ascii_case("toml") => Format::Toml,
-            _ if text.trim_start().starts_with('{') => Format::Json,
+            _ if text
+                .strip_prefix('\u{feff}')
+                .unwrap_or(&text)
+                .trim_start()
+                .starts_with('{') =>
+            {
+                Format::Json
+            }
             _ => Format::Toml,
         };
         Self::parse(&text, format).map_err(|e| Error::new(format!("{}: {e}", path.display())))
     }
 
     pub fn parse(text: &str, format: Format) -> Result<Self> {
+        let text = text.strip_prefix('\u{feff}').unwrap_or(text);
         let spec: Spec = match format {
             Format::Json => serde_json::from_str(text).map_err(|e| Error::new(e.to_string()))?,
             Format::Toml => toml::from_str(text).map_err(|e| toml_error(text, &e))?,
@@ -221,10 +229,19 @@ impl Chart {
             if p.name.trim().is_empty() {
                 return Err(Error::new(format!("{at} is empty")));
             }
+            if let Some(j) = self.parties[..i]
+                .iter()
+                .position(|q| q.name.eq_ignore_ascii_case(&p.name))
+            {
+                return Err(Error::new(format!("{at} repeats parties[{j}]")));
+            }
             glyphs(&at, &p.name)?;
             if Canvas::text_width(&p.name, 3) > crate::draw::WIDTH - 2 * crate::draw::LEFT - 42 {
                 return Err(Error::new(format!("{at} is too long for the legend")));
             }
+        }
+        if self.decimals.is_some_and(|d| d > 6) {
+            return Err(Error::new("decimals is at most 6"));
         }
         if self.parties.len() > 1 && (self.versus == 0 || self.versus >= self.parties.len()) {
             return Err(Error::new(
@@ -462,9 +479,6 @@ impl Spec {
         if !self.groups.is_empty() && !self.rows.is_empty() {
             return Err(Error::new("give rows or groups, not both"));
         }
-        if self.decimals.is_some_and(|d| d > 6) {
-            return Err(Error::new("decimals is at most 6"));
-        }
         let mut parties = Vec::new();
         for (i, p) in self.parties.into_iter().enumerate() {
             let colour = match &p.colour {
@@ -567,13 +581,20 @@ mod tests {
     fn fits_stops_at_the_room() {
         assert!(fits("title", &"A".repeat(41), 4).is_ok());
         assert_eq!(
-            fits("title", &"A".repeat(42), 4).expect_err("42").to_string(),
+            fits("title", &"A".repeat(42), 4)
+                .expect_err("42")
+                .to_string(),
             "title is too long: at most 41 characters fit"
         );
         assert!(fits("x", &"A".repeat(83), 2).is_ok());
         assert!(fits("x", &"A".repeat(84), 2).is_err());
         assert!(fits("x", "", 3).is_ok());
-        assert!(fits("x", "ü", 3).expect_err("glyph").to_string().contains("font has no"));
+        assert!(
+            fits("x", "ü", 3)
+                .expect_err("glyph")
+                .to_string()
+                .contains("font has no")
+        );
     }
 
     #[test]

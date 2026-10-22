@@ -5,7 +5,9 @@ use pito_compare::draw::{MAX_PARTIES, MAX_VALUE};
 use pito_compare::{Better, Chart, Format, Group, Row, Words};
 
 fn scratch(name: &str) -> PathBuf {
-    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("chart").join(name);
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join("chart")
+        .join(name);
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("scratch dir");
     dir
@@ -202,12 +204,14 @@ fn a_toml_extension_does_not_sniff_json() {
         r#"{"title":"T","better":"lower","parties":[{"name":"a"}],"rows":[{"label":"r","values":[1]}]}"#,
     )
     .expect("writes");
-    assert!(Chart::load(&path).is_err());
+    let m = Chart::load(&path).expect_err("read as TOML").to_string();
+    assert!(m.contains("at line 1 column "), "{m}");
 }
 
 #[test]
 fn broken_json_is_refused() {
-    assert!(!parse_err("{\"title\": ", Format::Json).is_empty());
+    let m = parse_err("{\"title\": ", Format::Json);
+    assert!(m.contains("line 1 column "), "{m}");
     assert!(parse_err("{\"title\":\"T\"}", Format::Json).contains("better"));
     assert!(
         parse_err(
@@ -227,7 +231,10 @@ fn broken_json_is_refused() {
 
 #[test]
 fn broken_toml_names_its_line_and_column() {
-    let m = parse_err("title = \"T\"\nbetter = \"lower\"\nbogus = 1\n", Format::Toml);
+    let m = parse_err(
+        "title = \"T\"\nbetter = \"lower\"\nbogus = 1\n",
+        Format::Toml,
+    );
     assert!(m.contains("bogus"), "{m}");
     assert!(m.ends_with("at line 3 column 1"), "{m}");
     let m = parse_err("title = \"T\"\n\nbetter = = 1\n", Format::Toml);
@@ -239,7 +246,10 @@ fn rows_and_groups_together_are_refused() {
     let text = r#"{"title":"T","better":"lower","parties":[{"name":"a"}],
         "rows":[{"label":"r","values":[1]}],
         "groups":[{"rows":[{"label":"s","values":[1]}]}]}"#;
-    assert_eq!(parse_err(text, Format::Json), "give rows or groups, not both");
+    assert_eq!(
+        parse_err(text, Format::Json),
+        "give rows or groups, not both"
+    );
 }
 
 fn with_decimals(d: usize) -> String {
@@ -366,7 +376,10 @@ fn party_count_refusals_and_the_boundary() {
     });
     assert_eq!(
         refusal(&c),
-        format!("parties has 13 parties: a chart draws at most {MAX_PARTIES}")
+        format!(
+            "parties has {} parties: a chart draws at most {MAX_PARTIES}",
+            MAX_PARTIES + 1
+        )
     );
 }
 
@@ -471,6 +484,8 @@ fn value_refusals_and_the_max() {
     c.check().expect("MAX_VALUE fits");
     c.groups[0].rows[0].values = vec![MAX_VALUE, 0.0];
     c.check().expect("zero is no ratio");
+    c.groups[0].rows[0].values = vec![MAX_VALUE.next_up(), 1.0];
+    refused_with(&c, "values are at most 1e15");
     c.groups[0].rows[0].values = vec![2e15, 2e15];
     assert_eq!(
         refusal(&c),
@@ -631,4 +646,79 @@ fn value_text_prefers_texts_then_formats() {
     assert_eq!(c.value_text(&r, 0), "12.34x");
     r.texts = vec!["fast".into(), "slow".into()];
     assert_eq!(c.value_text(&r, 1), "slow");
+}
+
+const SMALL_JSON: &str = r#"{"title":"T","better":"lower","parties":[{"name":"a"}],"rows":[{"label":"r","values":[1]}]}"#;
+
+#[test]
+fn a_leading_byte_order_mark_is_skipped() {
+    let dir = scratch("bom");
+    for name in ["x.json", "x.data"] {
+        let path = dir.join(name);
+        std::fs::write(&path, format!("\u{feff}{SMALL_JSON}")).expect("writes");
+        let c = Chart::load(&path).unwrap_or_else(|e| panic!("{name}: {e}"));
+        assert_eq!(c.title, "T", "{name}");
+    }
+    let path = dir.join("x.toml");
+    std::fs::write(
+        &path,
+        "\u{feff}title = \"T\"\nbetter = \"lower\"\nparties = [{ name = \"a\" }]\nrows = [{ label = \"r\", values = [1.0] }]\n",
+    )
+    .expect("writes");
+    assert_eq!(Chart::load(&path).expect("toml with a mark").title, "T");
+    let m = parse_err("\u{feff}title = \"T\"\nbogus = 1\n", Format::Toml);
+    assert!(m.ends_with("at line 2 column 1"), "{m}");
+}
+
+#[test]
+fn party_names_that_repeat_in_any_case_are_refused() {
+    let mut c = Chart::new("T", "", Better::Lower, &["x", "y", "X"]);
+    c.groups.push(Group {
+        name: String::new(),
+        rows: vec![Row::new("r", &[1.0, 2.0, 3.0])],
+    });
+    assert_eq!(refusal(&c), "parties[2].name repeats parties[0]");
+    c.parties[2].name = "z".into();
+    c.check().expect("all different");
+    let text = r#"{"title":"T","better":"lower","parties":[{"name":"x"},{"name":"X"}],"versus":"X","rows":[{"label":"r","values":[1,2]}]}"#;
+    assert_eq!(
+        parse_err(text, Format::Json),
+        "parties[1].name repeats parties[0]"
+    );
+}
+
+#[test]
+fn check_holds_decimals_to_six_for_a_chart_built_in_code() {
+    let mut c = chart();
+    c.decimals = Some(6);
+    c.check().expect("six");
+    c.decimals = Some(7);
+    assert_eq!(refusal(&c), "decimals is at most 6");
+}
+
+#[test]
+fn decimals_that_are_negative_or_fractional_are_refused_at_load() {
+    for d in ["-1", "1.5"] {
+        let text = SMALL_JSON.replace(r#""rows""#, &format!(r#""decimals":{d},"rows""#));
+        let m = parse_err(&text, Format::Json);
+        assert!(m.contains("line 1 column "), "{d}: {m}");
+    }
+}
+
+#[test]
+fn toml_groups_nest_their_rows() {
+    let text = "title = \"T\"\nbetter = \"higher\"\nparties = [{ name = \"a\" }, { name = \"b\" }]\n\n[[groups]]\nname = \"G1\"\nrows = [{ label = \"r1\", values = [1.0, 2.0] }]\n\n[[groups]]\nname = \"G2\"\n[[groups.rows]]\nlabel = \"r2\"\nvalues = [3.0, 4.0]\n[[groups.rows]]\nlabel = \"r3\"\nvalues = [5.0, 6.0]\n";
+    let c = Chart::parse(text, Format::Toml).expect("two groups");
+    let shape: Vec<(&str, Vec<&str>)> = c
+        .groups
+        .iter()
+        .map(|g| {
+            (
+                g.name.as_str(),
+                g.rows.iter().map(|r| r.label.as_str()).collect(),
+            )
+        })
+        .collect();
+    assert_eq!(shape, [("G1", vec!["r1"]), ("G2", vec!["r2", "r3"])]);
+    assert_eq!(c.groups[1].rows[1].values, [5.0, 6.0]);
 }
