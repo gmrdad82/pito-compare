@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.1.2 — 2026-10-22
+
+### Added
+
+- Data files saved with a byte-order mark (as some Windows editors save JSON) now load.
+
+### Changed
+
+- Two parties whose names match, ignoring case, are refused with one line naming both, instead of a misleading versus error.
+- A chart built in code is held to the same limit of 6 decimals as a data file.
+- The README and NOTICE name pcod (pito-codecs) for the GIF, and the README links to Discord for questions.
+
+### Fixed
+
+- With several parties, bars charts never share a file name any more: a name that slugs to nothing or repeats now gets a number that is free, so no PNG overwrites another.
+- Axes with very small steps (a few millionths and below) showed rounded or zero tick labels; they now show the right values, in E notation below 1e-6.
+
 ## v1.1.1 — 2026-10-15
 
 ### Changed

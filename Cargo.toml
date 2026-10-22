@@ -1,6 +1,6 @@
 [package]
 name = "pito-compare"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2024"
 rust-version = "1.97"
 description = "Comparison charts as PNGs from a JSON or TOML file: paired bars, balanced ratios and single bars"
