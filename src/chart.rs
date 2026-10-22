@@ -525,3 +525,76 @@ impl Spec {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::de::Error as _;
+
+    #[test]
+    fn role_matches_every_name_in_any_case() {
+        for (name, c) in ROLES {
+            assert_eq!(role(name), Some(*c));
+            assert_eq!(role(&name.to_uppercase()), Some(*c));
+        }
+        assert_eq!(role("purple"), None);
+        assert_eq!(role(""), None);
+    }
+
+    #[test]
+    fn colour_reads_hex_and_roles() {
+        assert_eq!(colour("#000000"), Some([0, 0, 0]));
+        assert_eq!(colour("#ff8001"), Some([255, 128, 1]));
+        assert_eq!(colour("#FF8001"), Some([255, 128, 1]));
+        assert_eq!(colour("Faster"), Some(canvas::FASTER));
+        for bad in [
+            "", "#", "ff8001", "#ff800", "#ff80011", "#gg0000", "#+f8001", "#ff 001", "#éé00",
+            "nope",
+        ] {
+            assert_eq!(colour(bad), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn glyphs_accepts_the_font_and_names_the_first_miss() {
+        assert!(glyphs("at", "abc XYZ 0-9 (1.5%) × † |").is_ok());
+        assert!(glyphs("at", "").is_ok());
+        let m = glyphs("notes[2]", "oké~").expect_err("é").to_string();
+        assert!(m.starts_with("notes[2]: the chart font has no 'é'"), "{m}");
+    }
+
+    #[test]
+    fn fits_stops_at_the_room() {
+        assert!(fits("title", &"A".repeat(41), 4).is_ok());
+        assert_eq!(
+            fits("title", &"A".repeat(42), 4).expect_err("42").to_string(),
+            "title is too long: at most 41 characters fit"
+        );
+        assert!(fits("x", &"A".repeat(83), 2).is_ok());
+        assert!(fits("x", &"A".repeat(84), 2).is_err());
+        assert!(fits("x", "", 3).is_ok());
+        assert!(fits("x", "ü", 3).expect_err("glyph").to_string().contains("font has no"));
+    }
+
+    #[test]
+    fn toml_error_counts_lines_and_characters() {
+        let text = "a = 1\nb = \"éé\" x\n";
+        let e = toml::from_str::<toml::Table>(text).expect_err("broken");
+        let m = toml_error(text, &e).to_string();
+        let column: usize = m
+            .rsplit("column ")
+            .next()
+            .and_then(|c| c.parse().ok())
+            .unwrap_or_else(|| panic!("{m}"));
+        assert!(m.contains(" at line 2 column "), "{m}");
+        let span = e.span().expect("span");
+        let bytes = span.start - text.find('\n').expect("newline");
+        assert_eq!(column, bytes - 2, "{m}");
+    }
+
+    #[test]
+    fn toml_error_without_a_span_keeps_the_message() {
+        let e = toml::de::Error::custom("  plain  ");
+        assert_eq!(toml_error("x", &e).to_string(), "plain");
+    }
+}
