@@ -194,7 +194,8 @@ fn a_data_file_whose_stem_is_not_utf8_draws_as_chart() {
     use std::os::unix::ffi::OsStrExt;
     let dir = scratch("stem");
     let data = dir.join(std::ffi::OsStr::from_bytes(b"\xff\xfe.toml"));
-    if std::fs::copy("examples/build.toml", &data).is_err() {
+    if let Err(e) = std::fs::copy("examples/build.toml", &data) {
+        eprintln!("skipped: this file system refuses a non-UTF-8 name ({e})");
         return;
     }
     let out_dir = dir.join("out");
@@ -207,6 +208,9 @@ fn a_data_file_whose_stem_is_not_utf8_draws_as_chart() {
         .expect("pcmp runs");
     assert_eq!(out.status.code(), Some(0));
     assert_eq!(files(&out_dir), ["chart-bars.png"]);
+    let shown = printed(&out);
+    assert_eq!(shown.len(), 1, "{shown:?}");
+    assert!(shown[0].ends_with("chart-bars.png"), "{shown:?}");
 }
 
 #[test]
@@ -234,5 +238,44 @@ fn an_unknown_kind_answers_like_clap() {
     assert!(
         err.ends_with("\n\nFor more information, try '--help'.\n"),
         "{err}"
+    );
+}
+
+#[test]
+fn bars_for_parties_whose_names_collide_print_distinct_paths() {
+    let dir = scratch("collide");
+    let data = dir.join("clash.toml");
+    std::fs::write(
+        &data,
+        "title = \"X\"\nbetter = \"higher\"\nparties = [{ name = \"2\" }, { name = \"%%\" }, { name = \"3\" }, { name = \"3\" }]\nrows = [{ label = \"R\", values = [1.0, 2.0, 3.0, 4.0] }]\n",
+    )
+    .expect("write");
+    let out_dir = dir.join("out");
+    let out = pcmp(&[
+        data.to_str().expect("utf-8"),
+        "--kind",
+        "bars",
+        "--out",
+        out_dir.to_str().expect("utf-8"),
+    ]);
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let mut shown = printed(&out);
+    assert_eq!(shown.len(), 4, "{shown:?}");
+    shown.sort();
+    shown.dedup();
+    assert_eq!(shown.len(), 4, "{shown:?}");
+    assert_eq!(
+        files(&out_dir),
+        [
+            "clash-bars-2-2.png",
+            "clash-bars-2.png",
+            "clash-bars-3.png",
+            "clash-bars-4.png",
+        ]
     );
 }

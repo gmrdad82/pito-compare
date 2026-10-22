@@ -78,9 +78,12 @@ fn nice_step(max: f64) -> f64 {
         .unwrap_or(10.0 * mag)
 }
 
-fn tick_text(v: f64) -> String {
+fn tick_text(v: f64, step: f64) -> String {
     if v.fract() == 0.0 {
         format!("{v:.0}")
+    } else if step < 1e-6 {
+        let e = step.log10().floor() as i32;
+        format!("{}E{e}", tick_text(v / 10f64.powi(e), 1.0))
     } else {
         let s = format!("{v:.6}");
         s.trim_end_matches('0').trim_end_matches('.').to_string()
@@ -222,7 +225,7 @@ fn bar_chart(chart: &Chart, parties: &[usize], tags: bool) -> Result<Canvas> {
     while t <= peak + step / 2.0 {
         let gx = x(t);
         grid.push((gx, t == 0.0));
-        let label = tick_text(t);
+        let label = tick_text(t, step);
         let w = Canvas::text_width(&label, 2);
         c.text(
             gx - if t == 0.0 { 0 } else { w / 2 },
@@ -368,7 +371,7 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
                 ("1×".to_string(), "SAME")
             } else {
                 (
-                    format!("{}×", tick_text(t)),
+                    format!("{}×", tick_text(t, 1.0)),
                     if side > 0.0 {
                         words.better.as_str()
                     } else {
@@ -423,4 +426,35 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
         c.text(LEFT, bottom + 30 + i as i64 * NOTE, line, 3, DIM);
     }
     Ok(c)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::tick_text;
+
+    #[test]
+    fn ticks_from_a_step_of_a_millionth_up_keep_their_decimals() {
+        assert_eq!(tick_text(0.0, 0.0001), "0");
+        assert_eq!(tick_text(0.0004, 0.0001), "0.0004");
+        assert_eq!(tick_text(0.30000000000000004, 0.1), "0.3");
+        assert_eq!(tick_text(0.000003, 0.000001), "0.000003");
+        assert_eq!(tick_text(25.0, 5.0), "25");
+        assert_eq!(tick_text(2.5, 0.5), "2.5");
+    }
+
+    #[test]
+    fn ticks_from_a_step_below_a_millionth_are_never_zero() {
+        assert_eq!(tick_text(0.0, 5e-7), "0");
+        assert_eq!(tick_text(5e-7, 5e-7), "5E-7");
+        assert_eq!(tick_text(5e-7 + 5e-7 + 5e-7, 5e-7), "15E-7");
+        assert_eq!(tick_text(2.5e-8, 5e-9), "25E-9");
+        let mut t = 0.0;
+        let step = 2e-301;
+        for _ in 0..5 {
+            t += step;
+            let s = tick_text(t, step);
+            assert_ne!(s, "0", "{t:e}");
+            assert!(s.ends_with("E-301"), "{s}");
+        }
+    }
 }

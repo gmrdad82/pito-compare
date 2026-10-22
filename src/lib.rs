@@ -68,6 +68,11 @@ pub fn render_each(
                 let mut name = format!("bars-{}", slug(&p.name));
                 if name == "bars-" || used.contains(&name) {
                     name = format!("bars-{}", i + 1);
+                    let mut k = 2;
+                    while used.contains(&name) {
+                        name = format!("bars-{}-{k}", i + 1);
+                        k += 1;
+                    }
                 }
                 each(&name, bars(chart, i)?)?;
                 used.push(name);

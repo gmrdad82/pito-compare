@@ -47,7 +47,7 @@ fn scratch(name: &str) -> PathBuf {
 fn each_kind_renders_what_it_names_for_one_party_and_for_several() {
     let one = chart(&["OURS"], &[&[3.0]]);
     let two = chart(&["OURS", "THEIRS"], &[&[3.0, 2.0]]);
-    let cases: [(&Chart, Kind, &[&str]); 7] = [
+    let cases: [(&Chart, Kind, &[&str]); 8] = [
         (&one, Kind::All, &["bars"]),
         (&one, Kind::Bars, &["bars"]),
         (&two, Kind::All, &["paired", "ratio"]),
@@ -55,6 +55,7 @@ fn each_kind_renders_what_it_names_for_one_party_and_for_several() {
         (&two, Kind::Ratio, &["ratio"]),
         (&two, Kind::Bars, &["bars-ours", "bars-theirs"]),
         (&one, Kind::Paired, &[]),
+        (&one, Kind::Ratio, &[]),
     ];
     for (c, kind, want) in cases {
         match pito_compare::render(c, kind) {
@@ -68,10 +69,26 @@ fn each_kind_renders_what_it_names_for_one_party_and_for_several() {
                         Some(BG)
                     );
                 }
+                if kind == Kind::Bars {
+                    for ((_, canvas), p) in out.iter().zip(&c.parties) {
+                        let y = 250 + 32 + 10;
+                        assert_eq!(
+                            canvas.pixel(LEFT as usize + 1, y),
+                            Some(p.colour),
+                            "{}",
+                            p.name
+                        );
+                    }
+                }
             }
             Err(e) => {
                 assert!(want.is_empty(), "{kind:?}: {e}");
-                assert!(e.message().contains("two parties"), "{e}");
+                let why = if kind == Kind::Ratio {
+                    "a ratio on every row"
+                } else {
+                    "two parties"
+                };
+                assert!(e.message().contains(why), "{kind:?}: {e}");
             }
         }
     }
@@ -121,11 +138,25 @@ fn bars_files_are_named_by_slug_and_fall_back_to_the_party_number() {
 
 #[test]
 fn bars_file_names_never_repeat() {
+    for parties in [
+        &["2", "%%"][..],
+        &["3", "A", "3"],
+        &["%%", "1"],
+        &["2", "2-2", "%%"],
+        &["2", "%%", "2 2"],
+    ] {
+        let values: Vec<f64> = (1..=parties.len()).map(|v| v as f64).collect();
+        let c = chart(parties, &[&values]);
+        let out = pito_compare::render(&c, Kind::Bars).expect("renders");
+        let mut n = names(&out);
+        assert_eq!(n.len(), parties.len(), "{parties:?}");
+        n.sort();
+        n.dedup();
+        assert_eq!(n.len(), parties.len(), "{parties:?}: {:?}", names(&out));
+    }
     let c = chart(&["2", "%%"], &[&[1.0, 2.0]]);
     let out = pito_compare::render(&c, Kind::Bars).expect("renders");
-    let n = names(&out);
-    assert_eq!(n.len(), 2);
-    assert_ne!(n[0], n[1], "{n:?}");
+    assert_eq!(names(&out), ["bars-2", "bars-2-2"]);
 }
 
 #[test]
@@ -312,10 +343,20 @@ fn a_zero_value_draws_as_bars_but_has_no_ratio() {
 }
 
 #[test]
-fn small_fractional_values_draw_an_axis() {
+fn small_fractional_values_draw_an_axis_with_labels() {
+    let band = 250 - 40..250 - 40 + 14;
     for v in [&[0.3, 0.1][..], &[0.0004, 0.0001], &[1e-300, 5e-301]] {
         let drawn = paired(&chart(&["A", "B"], &[v])).expect("draws");
         assert_eq!(drawn.width(), WIDTH as usize);
+        assert!(
+            has(
+                &drawn,
+                LEFT as usize + 40..WIDTH as usize,
+                band.clone(),
+                DIM
+            ),
+            "{v:?}"
+        );
     }
 }
 
