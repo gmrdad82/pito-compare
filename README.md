@@ -165,7 +165,7 @@ pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars]
 - `--out` is the folder the PNGs go to, made if missing; the current folder by default.
 - `--kind all` (the default) draws single bars for one party, and the paired and ratio charts for two or more. `paired`, `ratio` and `bars` draw one kind; `bars` with several parties draws one chart per party.
 
-Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there (never through a symlink), and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party.
+Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there (never through a symlink), and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party. A party whose name has no letters or digits, or gives a file name another party already took, is numbered by its place instead: `speed-bars-2.png` for the second, or `speed-bars-2-2.png` when that name is taken too.
 
 ### Exit codes
 
@@ -206,7 +206,7 @@ The same in JSON is an object with the same keys: `{"title": "PARSE SPEED", "bet
 | `unit` | no | What the values measure; the chart adds "HIGHER IS BETTER" or "LOWER IS BETTER". |
 | `better` | yes | `"higher"` or `"lower"`: which way is better, so which side counts as faster. |
 | `subtitle`, `date` | no | The small line under the unit, such as the machine and the date, joined with a comma. |
-| `parties` | yes | Who is compared, in the order their bars are drawn, one to 12. Each has a `name` and an optional `colour`. |
+| `parties` | yes | Who is compared, in the order their bars are drawn, one to 12. Each has a `name`, different from the others ignoring case, and an optional `colour`. |
 | `versus` | no | The name of the party the first one is compared with; the second party by default. |
 | `rows` | one of the two | The rows, with no group headings. |
 | `groups` | one of the two | Groups of rows, each with an optional `name` drawn as a heading and its `rows`. |

@@ -78,12 +78,42 @@ fn nice_step(max: f64) -> f64 {
         .unwrap_or(10.0 * mag)
 }
 
-fn tick_text(v: f64) -> String {
-    if v.fract() == 0.0 {
-        format!("{v:.0}")
+fn ticks(step: f64, peak: f64) -> Vec<f64> {
+    let mut at = Vec::new();
+    let mut t = 0.0;
+    while t <= peak + step / 2.0 {
+        at.push(t);
+        t += step;
+    }
+    at
+}
+
+fn fixed(v: f64, places: usize) -> String {
+    let s = format!("{v:.places$}");
+    if places == 0 {
+        s
     } else {
-        let s = format!("{v:.6}");
         s.trim_end_matches('0').trim_end_matches('.').to_string()
+    }
+}
+
+fn tick_text(v: f64, step: f64) -> String {
+    if v.fract() == 0.0 {
+        return format!("{v:.0}");
+    }
+    let e = (step.log10() + 1e-9).floor() as i32;
+    let m = step / 10f64.powi(e);
+    let k = (0..3)
+        .find(|&k| {
+            let s = m * 10f64.powi(k);
+            (s - s.round()).abs() < 1e-6 * s
+        })
+        .unwrap_or(3);
+    let places = k - e;
+    if places <= 6 {
+        fixed(v, places.max(0) as usize)
+    } else {
+        format!("{}E{e}", fixed(v / 10f64.powi(e), k as usize))
     }
 }
 
@@ -218,11 +248,10 @@ fn bar_chart(chart: &Chart, parties: &[usize], tags: bool) -> Result<Canvas> {
     }
     let x = |v: f64| LEFT + (v / peak * aw as f64).round() as i64;
     let mut grid = Vec::new();
-    let mut t = 0.0;
-    while t <= peak + step / 2.0 {
+    for t in ticks(step, peak) {
         let gx = x(t);
         grid.push((gx, t == 0.0));
-        let label = tick_text(t);
+        let label = tick_text(t, step);
         let w = Canvas::text_width(&label, 2);
         c.text(
             gx - if t == 0.0 { 0 } else { w / 2 },
@@ -231,7 +260,6 @@ fn bar_chart(chart: &Chart, parties: &[usize], tags: bool) -> Result<Canvas> {
             2,
             DIM,
         );
-        t += step;
     }
     draw_groups(&mut c, &at);
     for (r, (y, _)) in chart.rows().zip(&at) {
@@ -368,7 +396,7 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
                 ("1×".to_string(), "SAME")
             } else {
                 (
-                    format!("{}×", tick_text(t)),
+                    format!("{}×", tick_text(t, 1.0)),
                     if side > 0.0 {
                         words.better.as_str()
                     } else {
@@ -423,4 +451,72 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
         c.text(LEFT, bottom + 30 + i as i64 * NOTE, line, 3, DIM);
     }
     Ok(c)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{nice_step, tick_text, ticks};
+
+    #[test]
+    fn ticks_from_a_step_of_a_millionth_up_keep_their_decimals() {
+        assert_eq!(tick_text(0.0, 0.0001), "0");
+        assert_eq!(tick_text(0.0004, 0.0001), "0.0004");
+        assert_eq!(tick_text(0.30000000000000004, 0.1), "0.3");
+        assert_eq!(tick_text(0.000003, 0.000001), "0.000003");
+        assert_eq!(tick_text(25.0, 5.0), "25");
+        assert_eq!(tick_text(2.5, 0.5), "2.5");
+        assert_eq!(tick_text(0.75, 0.25), "0.75");
+        assert_eq!(tick_text(0.000025, 0.000025), "0.000025");
+    }
+
+    #[test]
+    fn ticks_from_a_step_below_a_millionth_are_never_zero() {
+        assert_eq!(tick_text(0.0, 5e-7), "0");
+        assert_eq!(tick_text(5e-7, 5e-7), "5E-7");
+        assert_eq!(tick_text(5e-7 + 5e-7 + 5e-7, 5e-7), "15E-7");
+        assert_eq!(tick_text(2.5e-8, 5e-9), "25E-9");
+        assert_eq!(tick_text(2.5e-6, 2.5e-6), "2.5E-6");
+        assert_eq!(tick_text(7.5e-6, 2.5e-6), "7.5E-6");
+        assert_eq!(tick_text(5e-6, 2.5e-6), "5E-6");
+        let mut t = 0.0;
+        let step = 2e-301;
+        for _ in 0..5 {
+            t += step;
+            let s = tick_text(t, step);
+            assert_ne!(s, "0", "{t:e}");
+            assert!(s.ends_with("E-301"), "{s}");
+        }
+    }
+
+    #[test]
+    fn a_step_a_hair_under_a_power_of_ten_keeps_its_exponent() {
+        let step = 1e-7f64.next_down();
+        assert_eq!(tick_text(step, step), "1E-7");
+        assert_eq!(tick_text(2.0 * step, step), "2E-7");
+    }
+
+    #[test]
+    fn every_axis_from_a_trillionth_to_the_largest_value_labels_its_ticks_truly() {
+        let mut max = 1e-12;
+        let mut axes = 0;
+        while max <= 1e15 {
+            let step = nice_step(max);
+            let peak = (max / step).ceil() * step;
+            let at = ticks(step, peak);
+            assert!(at.len() >= 2, "{max:e}");
+            for t in at {
+                let label = tick_text(t, step);
+                let back: f64 = label
+                    .parse()
+                    .unwrap_or_else(|_| panic!("{label} for {t:e} on a {max:e} axis"));
+                assert!(
+                    (back - t).abs() <= step * 1e-6,
+                    "{label} for {t:e} on a {max:e} axis, step {step:e}"
+                );
+            }
+            max *= 1.07;
+            axes += 1;
+        }
+        assert!(axes > 600, "{axes}");
+    }
 }

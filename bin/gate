@@ -2,6 +2,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+done_line="gate: green"
+if [ "$#" -gt 0 ]; then
+  if [ "$1" = "--fast" ] && [ "$#" -eq 1 ]; then
+    done_line="fast gate: green"
+  else
+    echo "usage: bin/gate [--fast]" >&2
+    exit 2
+  fi
+fi
+
 if command -v shellcheck > /dev/null; then
   shellcheck bin/gate bin/images bin/docs-bundle bin/marks
 else
@@ -11,3 +21,4 @@ cargo fmt --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo clippy --lib --no-default-features --locked -- -D warnings
 cargo test --all-targets --locked
+echo "$done_line"
