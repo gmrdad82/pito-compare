@@ -225,13 +225,13 @@ fn the_png_decodes_back_to_the_canvas() {
     c.rect(1, 1, 2, 2, FASTER);
     let bytes = c.png().expect("encodes");
     assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
-    let mut reader = png::Decoder::new(std::io::Cursor::new(&bytes))
-        .read_info()
+    let picture = pito_codecs::png::Decoder::new()
+        .decode_picture(&bytes, pito_codecs::png::Transform::Identity)
         .expect("a PNG");
-    let mut buf = vec![0; reader.output_buffer_size().expect("a size")];
-    let info = reader.next_frame(&mut buf).expect("a frame");
-    assert_eq!((info.width, info.height), (7, 5));
-    assert_eq!(info.color_type, png::ColorType::Rgb);
+    let buf = picture.data;
+    assert_eq!((picture.width, picture.height), (7, 5));
+    assert_eq!(picture.color, pito_codecs::png::Color::Rgb);
+    assert_eq!(picture.depth, 8);
     let at = (7 + 1) * 3;
     assert_eq!(buf[at..at + 3], FASTER);
     assert_eq!(buf[..3], BG);

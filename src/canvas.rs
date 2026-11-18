@@ -1,6 +1,8 @@
 use std::io::Write;
 use std::path::Path;
 
+use pito_codecs::png;
+
 use crate::{Error, Result};
 
 pub type Color = [u8; 3];
@@ -148,16 +150,14 @@ impl Canvas {
         }
     }
 
-    pub fn write_png<W: Write>(&self, out: W) -> Result<()> {
-        let mut enc = png::Encoder::new(out, self.width as u32, self.height as u32);
-        enc.set_color(png::ColorType::Rgb);
-        enc.set_depth(png::BitDepth::Eight);
-        let mut w = enc
-            .write_header()
+    pub fn write_png<W: Write>(&self, mut out: W) -> Result<()> {
+        let mut picture =
+            png::Picture::new(self.width as u32, self.height as u32, png::Color::Rgb, 8);
+        picture.data.clear();
+        picture.data.extend_from_slice(&self.px);
+        let bytes = png::encode_picture(&picture, &png::Options::default())
             .map_err(|e| Error::new(format!("cannot write the PNG: {e}")))?;
-        w.write_image_data(&self.px)
-            .map_err(|e| Error::new(format!("cannot write the PNG: {e}")))?;
-        w.finish()
+        out.write_all(&bytes)
             .map_err(|e| Error::new(format!("cannot write the PNG: {e}")))
     }
 

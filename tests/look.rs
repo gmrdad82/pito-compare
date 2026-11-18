@@ -3,13 +3,10 @@ use std::path::Path;
 use pito_compare::{Chart, Kind};
 
 fn pixels(bytes: &[u8]) -> (u32, u32, Vec<u8>) {
-    let mut reader = png::Decoder::new(std::io::Cursor::new(bytes))
-        .read_info()
+    let picture = pito_codecs::png::Decoder::new()
+        .decode_picture(bytes, pito_codecs::png::Transform::Identity)
         .expect("a PNG");
-    let mut buf = vec![0; reader.output_buffer_size().expect("a size")];
-    let info = reader.next_frame(&mut buf).expect("a frame");
-    buf.truncate(info.buffer_size());
-    (info.width, info.height, buf)
+    (picture.width, picture.height, picture.data)
 }
 
 #[test]
