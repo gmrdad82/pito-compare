@@ -4,6 +4,7 @@
 
 ### Changed
 
+- The macOS `pcmp` archive holds a `pcmp` signed with the Developer ID and the hardened runtime and notarized by Apple.
 - PNGs are written through pito-codecs 5.1.0 instead of the outside `png` crate; every file decodes to the same samples.
 
 ## v1.1.2 — 2026-10-22
