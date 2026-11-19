@@ -5,20 +5,20 @@ sidebar:
   order: 2
 ---
 
-pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file. pcmp is one file and needs nothing else to run.
+pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file. pcmp is one file and needs nothing else to run. The lines below also install pcmp's [Claude skill](../skill/) with `pcmp skill install`, and running them again updates the binary and the skill together.
 
 ## Linux
 
 ```
 v=$(basename "$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/gmrdad82/pito-compare/releases/latest)")
-mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-x86_64.tar.gz" | tar -xz -C ~/.local/bin pcmp
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-x86_64.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
 ```
 
 ## macOS
 
 ```
 v=$(basename "$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/gmrdad82/pito-compare/releases/latest)")
-mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-macos-arm64.tar.gz" | tar -xz -C ~/.local/bin pcmp
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-macos-arm64.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
 ```
 
 On Linux and macOS, `~/.local/bin` needs to be on your `PATH`.
@@ -32,6 +32,7 @@ $v = (Invoke-RestMethod https://api.github.com/repos/gmrdad82/pito-compare/relea
 Invoke-WebRequest "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-windows-x86_64.zip" -OutFile "$env:TEMP\pcmp.zip"
 Expand-Archive "$env:TEMP\pcmp.zip" "$env:LOCALAPPDATA\pcmp" -Force
 [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ";$env:LOCALAPPDATA\pcmp", 'User')
+& "$env:LOCALAPPDATA\pcmp\pcmp.exe" skill install
 ```
 
 Open a new terminal afterwards, so it sees the new `PATH`.
@@ -44,7 +45,11 @@ On any of the three, with Rust 1.97 or newer:
 cargo install --locked --git https://github.com/gmrdad82/pito-compare --tag vX.Y.Z pito-compare
 ```
 
-Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags).
+Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags), then run `pcmp skill install` for the skill. From a clone, `bin/install` builds pcmp, puts it in `~/.local/opt/pcmp`, links it from `~/.local/bin` and installs the skill, and again on every update.
+
+## The Claude skill
+
+pcmp comes with a Claude skill. `pcmp skill install` puts it in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp` (Claude Code) and `~/.agents/skills/pcmp` (other agents); `pcmp skill status` checks it. [The Claude skill](../skill/) says what it teaches and how updates treat it.
 
 ## Check the download
 

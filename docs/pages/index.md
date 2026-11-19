@@ -33,6 +33,7 @@ It comes two ways: `pcmp`, the command line, and `pito_compare`, a Rust library 
 ## Where to go next
 
 - [Install pcmp](install/) and draw a first chart.
+- [The Claude skill](skill/) pcmp comes with, so your AI agent draws charts for you.
 - [Compare two versions](guides/compare-two/): paired bars and the balanced ratio chart.
 - [Compare three or more](guides/three-or-more/): pick who the tags compare with, and charts where lower is better.
 - [Draw single bars](guides/single-bars/) when there is nothing to compare.

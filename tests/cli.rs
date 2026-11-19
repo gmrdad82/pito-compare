@@ -39,7 +39,12 @@ fn a_bare_call_prints_the_summary() {
         .copied()
         .filter(|l| l.starts_with("  pcmp "))
         .collect();
-    for form in ["pcmp <data> ", "pcmp --help ", "pcmp --version "] {
+    for form in [
+        "pcmp <data> ",
+        "pcmp skill install|status ",
+        "pcmp --help ",
+        "pcmp --version ",
+    ] {
         assert_eq!(
             forms
                 .iter()
@@ -49,7 +54,7 @@ fn a_bare_call_prints_the_summary() {
             "{text}"
         );
     }
-    assert_eq!(forms.len(), 3, "{text}");
+    assert_eq!(forms.len(), 4, "{text}");
     let column = |l: &str| {
         let rest = l.trim_start();
         let gap = rest.find("  ").expect("a gap before the description");

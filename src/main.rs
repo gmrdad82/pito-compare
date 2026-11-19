@@ -2,8 +2,10 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use pito_compare::{Chart, Kind};
+
+mod skill;
 
 const AFTER: &str = "\
 The data file is JSON or TOML (by its extension, else by its first character):
@@ -23,7 +25,10 @@ The data file is JSON or TOML (by its extension, else by its first character):
 
 Each PNG is written to <out>/<data file's stem>-<kind>.png and its path printed.
 With --kind all, one party draws bars; two or more draw the paired and ratio charts.
-The README at https://github.com/gmrdad82/pito-compare has every field.";
+The README at https://github.com/gmrdad82/pito-compare has every field.
+
+pcmp comes with a skill for AI coding agents. `pcmp skill install` puts it in
+~/.local/opt/pcmp/skills/pcmp and links it into ~/.claude/skills and ~/.agents/skills.";
 
 #[derive(Parser)]
 #[command(
@@ -31,11 +36,19 @@ The README at https://github.com/gmrdad82/pito-compare has every field.";
     bin_name = "pcmp",
     version,
     about = "Draws comparison charts as PNGs from a JSON or TOML data file",
-    after_help = AFTER
+    after_help = AFTER,
+    args_conflicts_with_subcommands = true,
+    subcommand_negates_reqs = true
 )]
 struct Cli {
-    #[arg(value_name = "DATA", help = "the data file, .json or .toml")]
-    data: PathBuf,
+    #[command(subcommand)]
+    command: Option<Command>,
+    #[arg(
+        value_name = "DATA",
+        required = true,
+        help = "the data file, .json or .toml"
+    )]
+    data: Option<PathBuf>,
     #[arg(
         short,
         long,
@@ -52,6 +65,15 @@ struct Cli {
         help = "which charts to draw"
     )]
     kind: KindArg,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    #[command(about = "install the pcmp skill for Claude Code and other agents, or check it")]
+    Skill {
+        #[command(subcommand)]
+        action: skill::Action,
+    },
 }
 
 #[derive(Clone, Copy, ValueEnum)]
@@ -73,10 +95,9 @@ impl From<KindArg> for Kind {
     }
 }
 
-fn run(cli: &Cli) -> Result<Vec<PathBuf>, String> {
-    let chart = Chart::load(&cli.data).map_err(|e| e.to_string())?;
-    let stem = cli
-        .data
+fn run(cli: &Cli, data: &Path) -> Result<Vec<PathBuf>, String> {
+    let chart = Chart::load(data).map_err(|e| e.to_string())?;
+    let stem = data
         .file_stem()
         .and_then(|s| s.to_str())
         .filter(|s| !s.is_empty())
@@ -93,30 +114,37 @@ fn run(cli: &Cli) -> Result<Vec<PathBuf>, String> {
     })
     .map_err(|e| match failed.take() {
         Some(e) => e.to_string(),
-        None => format!("{}: {e}", cli.data.display()),
+        None => format!("{}: {e}", data.display()),
     })?;
     Ok(written)
 }
 
-fn print(paths: &[PathBuf]) {
+fn shown(p: &Path) -> &Path {
+    let stripped = p.strip_prefix(".").unwrap_or(p);
+    if stripped.as_os_str().is_empty() {
+        p
+    } else {
+        stripped
+    }
+}
+
+fn print(lines: &[String]) {
     let mut out = std::io::stdout().lock();
-    for p in paths {
-        let shown = p.strip_prefix(".").unwrap_or(p);
-        let shown: &Path = if shown.as_os_str().is_empty() {
-            p
-        } else {
-            shown
-        };
-        if writeln!(out, "{}", shown.display()).is_err() {
+    for line in lines {
+        if writeln!(out, "{line}").is_err() {
             return;
         }
     }
 }
 
-const FORMS: [(&str, &str); 3] = [
+const FORMS: [(&str, &str); 4] = [
     (
         "pcmp <data> [--out <dir>] [--kind <kind>]",
         "draw the charts of a .json or .toml file: all, paired, ratio or bars",
+    ),
+    (
+        "pcmp skill install|status",
+        "install the skill pcmp comes with for Claude Code and other agents, or check it",
     ),
     (
         "pcmp --help",
@@ -156,9 +184,19 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
     let cli = Cli::parse();
-    match run(&cli) {
-        Ok(paths) => {
-            print(&paths);
+    let done = match (&cli.command, &cli.data) {
+        (Some(Command::Skill { action }), _) => skill::run(action),
+        (None, Some(data)) => run(&cli, data).map(|paths| {
+            paths
+                .iter()
+                .map(|p| shown(p).display().to_string())
+                .collect()
+        }),
+        (None, None) => Err("no data file".to_owned()),
+    };
+    match done {
+        Ok(lines) => {
+            print(&lines);
             ExitCode::SUCCESS
         }
         Err(e) => {

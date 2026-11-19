@@ -25,20 +25,20 @@ Measured on 2026-10-15 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Ru
 
 ## Install and first use
 
-pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file.
+pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file. The lines below also put pcmp's [Claude skill](#works-with-your-ai-agent) in place with `pcmp skill install`, and running them again updates the binary and the skill together.
 
 **Linux:**
 
 ```
 v=$(basename "$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/gmrdad82/pito-compare/releases/latest)")
-mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-x86_64.tar.gz" | tar -xz -C ~/.local/bin pcmp
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-x86_64.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
 ```
 
 **macOS:**
 
 ```
 v=$(basename "$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/gmrdad82/pito-compare/releases/latest)")
-mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-macos-arm64.tar.gz" | tar -xz -C ~/.local/bin pcmp
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-macos-arm64.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
 ```
 
 On Linux and macOS, `~/.local/bin` needs to be on your `PATH`.
@@ -50,6 +50,7 @@ $v = (Invoke-RestMethod https://api.github.com/repos/gmrdad82/pito-compare/relea
 Invoke-WebRequest "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-windows-x86_64.zip" -OutFile "$env:TEMP\pcmp.zip"
 Expand-Archive "$env:TEMP\pcmp.zip" "$env:LOCALAPPDATA\pcmp" -Force
 [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ";$env:LOCALAPPDATA\pcmp", 'User')
+& "$env:LOCALAPPDATA\pcmp\pcmp.exe" skill install
 ```
 
 Open a new terminal afterwards, so it sees the new `PATH`.
@@ -60,7 +61,7 @@ Open a new terminal afterwards, so it sees the new `PATH`.
 cargo install --locked --git https://github.com/gmrdad82/pito-compare --tag vX.Y.Z pito-compare
 ```
 
-Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags). pcmp needs nothing else to run.
+Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags), then run `pcmp skill install` for the skill. pcmp needs nothing else to run. From a clone, `bin/install` builds pcmp, puts it in `~/.local/opt/pcmp`, links it from `~/.local/bin` and installs the skill, and again on every update.
 
 **First chart:** save this as `demo.toml`,
 
@@ -84,6 +85,14 @@ $ pcmp demo.toml --out charts
 charts/demo-paired.png
 charts/demo-ratio.png
 ```
+
+## Works with your AI agent
+
+pcmp comes with a Claude skill, so your AI coding agent knows how to write the data file (JSON or TOML), pick between paired bars, the balanced ratio chart and single bars, style them, and read a refusal. It is a `SKILL.md` and four topic guides, built into the binary.
+
+`pcmp skill install` puts the skill in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp`, which Claude Code reads, and `~/.agents/skills/pcmp`, which other agents read. The install lines above run it for you, and so does `bin/install` from a clone. Every update runs it again: an older copy is replaced and a file a new version drops is removed. `pcmp skill status` says whether the skill is installed and matches this pcmp.
+
+On Windows there are no links, so the skill is copied into both folders under your user folder instead. A `pcmp` folder in either that pcmp did not place is left alone, with one line saying so.
 
 ## The charts
 
@@ -161,9 +170,10 @@ pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built fo
 
 ```
 $ pcmp
-pcmp 1.2.0: draws comparison charts as PNGs from a JSON or TOML data file
+pcmp 1.3.0: draws comparison charts as PNGs from a JSON or TOML data file
 
   pcmp <data> [--out <dir>] [--kind <kind>]  draw the charts of a .json or .toml file: all, paired, ratio or bars
+  pcmp skill install|status                  install the skill pcmp comes with for Claude Code and other agents, or check it
   pcmp --help                                the full help, with every option and the data format
   pcmp --version                             print the version
 
@@ -184,7 +194,7 @@ Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting on
 
 ### Exit codes
 
-- `0`: every chart was drawn, or a bare `pcmp` printed its summary.
+- `0`: every chart was drawn, a bare `pcmp` printed its summary, or `pcmp skill` did what it was asked.
 - `1`: the data file couldn't be read or drawn, or a PNG couldn't be written, with one line on stderr starting `pcmp: ` that names the file and, where it can, the field, line and column.
 - `2`: the command line is wrong. pcmp answers the way clap-based tools do: `error: …`, the usage line and `For more information, try '--help'.`
 
@@ -269,7 +279,7 @@ cargo build --release
 bin/gate
 ```
 
-`bin/gate` is the gate, on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; each release carries them as `docs-vX.Y.Z.tar.gz`. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pcod from [pito-codecs](https://github.com/gmrdad82/pito-codecs) ([NOTICE](NOTICE)).
+`bin/install` installs pcmp and its skill from a clone; the skill's files are in `skills/pcmp`. `bin/gate` is the gate, on Linux, Windows and macOS: ShellCheck where it is installed, rustfmt, clippy with warnings as errors, and the tests, which include drawing the examples and comparing them pixel for pixel with the README's images. `bin/images` draws those again after a change to the look, and `bin/docs-bundle` builds the documentation pages from `docs/pages`, the command line's help, `cargo doc` and this CHANGELOG; each release carries them as `docs-vX.Y.Z.tar.gz`. On Windows it runs in Git Bash. The README's clip is a prec shot in `render/terminal.toml`, made a GIF by pcod from [pito-codecs](https://github.com/gmrdad82/pito-codecs) ([NOTICE](NOTICE)).
 
 ## Licence
 

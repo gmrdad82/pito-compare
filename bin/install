@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")/.."
+
+if [ "$#" -gt 0 ]; then
+  echo "usage: bin/install" >&2
+  exit 2
+fi
+
+opt="$HOME/.local/opt/pcmp"
+bin="$HOME/.local/bin"
+
+if [ -n "${PCMP_BINARY:-}" ]; then
+  built=$PCMP_BINARY
+else
+  cargo build --release --locked --bin pcmp
+  target=$(cargo metadata --format-version 1 --no-deps | grep -o '"target_directory":"[^"]*"' | cut -d'"' -f4)
+  built=$target/release/pcmp
+fi
+
+mkdir -p "$opt" "$bin"
+if [ -e "$bin/pcmp" ] && [ ! -L "$bin/pcmp" ]; then rm -f -- "$bin/pcmp"; fi
+install -m 755 "$built" "$opt/pcmp.new"
+mv -f "$opt/pcmp.new" "$opt/pcmp"
+ln -sfn "$opt/pcmp" "$bin/pcmp"
+"$opt/pcmp" skill install
+"$opt/pcmp" --version

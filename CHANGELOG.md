@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.3.0 — 2026-11-19
+
+### Added
+
+- pcmp comes with a Claude skill: a `SKILL.md` with its description and triggers, safety rules, command discovery through `pcmp --help`, a decision framework, example requests and what is out of scope, and topic guides on the JSON and TOML data file, the chart kinds, styling and output. It is built into the binary.
+- `pcmp skill install` puts the skill in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp` (copied into both on Windows), replacing an older copy and removing files a new version drops; a `pcmp` folder or link there that pcmp did not place is left alone, with one line saying so. `pcmp skill status` says whether each folder is installed and matches this pcmp. A bare `pcmp` lists both.
+- `bin/install` builds pcmp from a clone, puts it in `~/.local/opt/pcmp`, links it from `~/.local/bin` and installs the skill, and does the same again on every update.
+
+### Changed
+
+- The install lines in the README and the docs run `pcmp skill install` after unpacking, and running them again updates the binary and the skill together. The README and the docs say pcmp comes with a Claude skill and where it lands; the docs have a page for it, and the command line page lists the `skill` command.
+
 ## v1.2.0 — 2026-11-19
 
 ### Changed
