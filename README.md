@@ -157,6 +157,21 @@ pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built fo
 
 ## Use
 
+`pcmp` on its own prints what it does and how to call it:
+
+```
+$ pcmp
+pcmp 1.2.0: draws comparison charts as PNGs from a JSON or TOML data file
+
+  pcmp <data> [--out <dir>] [--kind <kind>]  draw the charts of a .json or .toml file: all, paired, ratio or bars
+  pcmp --help                                the full help, with every option and the data format
+  pcmp --version                             print the version
+
+Each PNG is written to <dir>/<data file's stem>-<kind>.png and its path printed.
+```
+
+In full:
+
 ```
 pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars]
 ```
@@ -169,7 +184,7 @@ Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting on
 
 ### Exit codes
 
-- `0`: every chart was drawn.
+- `0`: every chart was drawn, or a bare `pcmp` printed its summary.
 - `1`: the data file couldn't be read or drawn, or a PNG couldn't be written, with one line on stderr starting `pcmp: ` that names the file and, where it can, the field, line and column.
 - `2`: the command line is wrong. pcmp answers the way clap-based tools do: `error: …`, the usage line and `For more information, try '--help'.`
 

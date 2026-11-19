@@ -13,6 +13,7 @@ mkdir -p "$site" "$out"
 cp -R docs/pages/. "$site/"
 
 help=$(NO_COLOR=1 cargo run --locked --quiet --bin pcmp -- --help)
+bare=$(NO_COLOR=1 cargo run --locked --quiet --bin pcmp)
 {
   cat << EOF
 ---
@@ -23,6 +24,15 @@ sidebar:
 ---
 
 This page is generated from pcmp $version's own clap definitions (\`pcmp --help\`).
+
+## Bare pcmp
+
+\`pcmp\` with no arguments prints what it does and how to call it, and exits with 0:
+
+\`\`\`
+\$ pcmp
+$bare
+\`\`\`
 
 ## Usage
 
@@ -54,9 +64,9 @@ Each chart is written to `<DIR>/<the data file's stem>-<kind>.png`, overwriting 
 
 | Code | When |
 |---|---|
-| `0` | Every chart was drawn. |
+| `0` | Every chart was drawn, or a bare `pcmp` printed its summary. |
 | `1` | The data file couldn't be read or drawn, or a PNG couldn't be written: one line on stderr starting `pcmp: `, naming the file and, where it can, the field, line and column. |
-| `2` | The command line is wrong: clap's `error: …`, the usage line and `For more information, try '--help'.` on stderr. A bare `pcmp` answers this way too. |
+| `2` | The command line is wrong: clap's `error: …`, the usage line and `For more information, try '--help'.` on stderr. |
 
 ## Full help
 

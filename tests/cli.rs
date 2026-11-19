@@ -18,8 +18,51 @@ fn scratch(name: &str) -> PathBuf {
 }
 
 #[test]
-fn a_bare_call_answers_like_clap() {
+fn a_bare_call_prints_the_summary() {
     let out = pcmp(&[]);
+    let text = String::from_utf8(out.stdout).expect("utf-8");
+    assert_eq!(out.status.code(), Some(0));
+    assert!(out.stderr.is_empty());
+    let lines: Vec<&str> = text.lines().collect();
+    assert!(
+        lines[0].starts_with(&format!("pcmp {}: ", env!("CARGO_PKG_VERSION"))),
+        "{text}"
+    );
+    assert!(
+        !lines
+            .iter()
+            .any(|l| l.starts_with("error:") || l.starts_with("Usage:")),
+        "{text}"
+    );
+    let forms: Vec<&str> = lines
+        .iter()
+        .copied()
+        .filter(|l| l.starts_with("  pcmp "))
+        .collect();
+    for form in ["pcmp <data> ", "pcmp --help ", "pcmp --version "] {
+        assert_eq!(
+            forms
+                .iter()
+                .filter(|l| l.trim_start().starts_with(form))
+                .count(),
+            1,
+            "{text}"
+        );
+    }
+    assert_eq!(forms.len(), 3, "{text}");
+    let column = |l: &str| {
+        let rest = l.trim_start();
+        let gap = rest.find("  ").expect("a gap before the description");
+        let after = &rest[gap..];
+        l.len() - rest.len() + gap + (after.len() - after.trim_start().len())
+    };
+    let first = column(forms[0]);
+    assert!(forms.iter().all(|l| column(l) == first), "{text}");
+}
+
+#[test]
+fn a_command_line_error_answers_like_clap() {
+    let out = pcmp(&["--kind", "bars"]);
     let err = String::from_utf8_lossy(&out.stderr);
     assert_eq!(out.status.code(), Some(2));
     assert!(out.stdout.is_empty());

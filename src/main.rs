@@ -113,6 +113,33 @@ fn print(paths: &[PathBuf]) {
     }
 }
 
+const FORMS: [(&str, &str); 3] = [
+    (
+        "pcmp <data> [--out <dir>] [--kind <kind>]",
+        "draw the charts of a .json or .toml file: all, paired, ratio or bars",
+    ),
+    (
+        "pcmp --help",
+        "the full help, with every option and the data format",
+    ),
+    ("pcmp --version", "print the version"),
+];
+
+fn summary() -> String {
+    let width = FORMS.iter().map(|(f, _)| f.len()).max().unwrap_or(0) + 2;
+    let mut s = format!(
+        "pcmp {}: draws comparison charts as PNGs from a JSON or TOML data file\n\n",
+        env!("CARGO_PKG_VERSION")
+    );
+    for (form, what) in FORMS {
+        s.push_str(&format!("  {form:<width$}{what}\n"));
+    }
+    s.push_str(
+        "\nEach PNG is written to <dir>/<data file's stem>-<kind>.png and its path printed.\n",
+    );
+    s
+}
+
 fn main() -> ExitCode {
     std::panic::set_hook(Box::new(|info| {
         let what = info
@@ -124,6 +151,10 @@ fn main() -> ExitCode {
         eprintln!("pcmp: unexpected failure ({what}); please report it as an issue");
         std::process::exit(1);
     }));
+    if std::env::args_os().len() == 1 {
+        let _ = std::io::stdout().lock().write_all(summary().as_bytes());
+        return ExitCode::SUCCESS;
+    }
     let cli = Cli::parse();
     match run(&cli) {
         Ok(paths) => {

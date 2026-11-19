@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0 — 2026-11-19
+
+### Changed
+
+- A bare `pcmp` prints a short summary and exits with 0, as the other PITO MD tools do: its version and what it does, then each way to call it with a line on what it does. `pcmp --help` keeps the full help, and a wrong command line still answers the way clap does, with exit code 2.
+
 ## v1.1.3 — 2026-11-18
 
 ### Changed
