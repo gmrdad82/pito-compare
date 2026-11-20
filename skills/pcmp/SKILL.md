@@ -51,7 +51,7 @@ The examples here use the data files in pito-compare's `examples/`. In another p
 - stdout is the path of each PNG written, one a line, and nothing else. Use those paths and do not guess names.
 - A misspelt key is refused with the keys it expected. `colour` belongs to a party, not to the chart.
 - Every number in a data file comes from the user or from a run you made. Say in `subtitle` or `notes` when it is sample data.
-- `pcmp skill install` writes under the home folder: `~/.local/opt/pcmp/skills/pcmp`, linked from `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp`. Run it when asked. A `pcmp` folder there that pcmp did not place is left alone.
+- `pcmp skill install` writes the skill as real files into `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp`, and into Codex's and Pi's skill folders when they exist. An older link there is replaced by files. Run it when asked.
 
 ## Decision Framework
 

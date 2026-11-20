@@ -59,7 +59,7 @@ EOF
 
 ## The skill
 
-`pcmp skill install` puts the Claude skill pcmp comes with in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp`; `pcmp skill status` says whether it is installed. [The Claude skill](../../skill/) has the rest.
+`pcmp skill install` writes the Claude skill pcmp comes with as files into `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp` (and Codex's and Pi's skill folders when they exist), replacing an older link; `pcmp skill status` says whether it is installed. [The Claude skill](../../skill/) has the rest.
 
 ## Output
 

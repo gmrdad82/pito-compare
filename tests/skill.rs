@@ -330,3 +330,27 @@ fn the_readme_and_the_docs_say_pcmp_comes_with_a_skill_and_where_it_lands() {
         }
     }
 }
+
+#[test]
+fn no_shipped_text_still_describes_the_store_and_links() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    for file in [
+        "README.md",
+        "bin/docs-bundle",
+        "skills/pcmp/SKILL.md",
+        "skills/pcmp/reference.md",
+    ] {
+        let Ok(text) = std::fs::read_to_string(root.join(file)) else {
+            continue;
+        };
+        for stale in [
+            ".local/opt/pcmp/skills",
+            "left alone",
+            "no links",
+            "linked from",
+            "links it into",
+        ] {
+            assert!(!text.contains(stale), "{file} still says {stale}");
+        }
+    }
+}
