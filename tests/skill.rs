@@ -271,11 +271,18 @@ fn a_changed_file_reads_as_not_matching() {
     pcmp(&home, &["skill", "install"]);
     std::fs::write(home.join(".claude/skills/pcmp/SKILL.md"), "edited\n").expect("edit");
     let text = said(&pcmp(&home, &["skill", "status"]));
+    let mut lines = text.lines();
+    let claude = lines.next().expect("claude line");
     assert!(
-        text.lines()
-            .all(|l| l.contains("does not match pcmp")
-                && l.ends_with("pcmp skill install refreshes it")),
+        claude.contains("does not match pcmp")
+            && claude.ends_with("pcmp skill install refreshes it"),
         "{text}"
+    );
+    assert!(
+        lines
+            .next()
+            .expect("agents line")
+            .contains(", matches pcmp")
     );
 }
 
