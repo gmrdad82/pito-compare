@@ -49,7 +49,7 @@ Replace `vX.Y.Z` with a [tag](https://github.com/gmrdad82/pito-compare/tags), th
 
 ## The Claude skill
 
-pcmp comes with a Claude skill. `pcmp skill install` puts it in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp` (Claude Code) and `~/.agents/skills/pcmp` (other agents); `pcmp skill status` checks it. [The Claude skill](../skill/) says what it teaches and how updates treat it.
+pcmp comes with a Claude skill. `pcmp skill install` writes it as files into `~/.claude/skills/pcmp` (Claude Code) and `~/.agents/skills/pcmp` (other agents), and into Codex's and Pi's skill folders when they exist; `pcmp skill status` checks it. [The Claude skill](../skill/) says what it teaches and how updates treat it.
 
 ## Check the download
 

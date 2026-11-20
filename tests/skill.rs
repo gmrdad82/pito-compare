@@ -9,8 +9,6 @@ const FILES: [&str; 5] = [
     "output.md",
 ];
 
-const MARK: &str = ".pcmp-skill";
-
 fn fresh(name: &str) -> PathBuf {
     let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join(format!("skill-{name}"));
     let _ = std::fs::remove_dir_all(&dir);
@@ -73,7 +71,6 @@ fn names(dir: &Path) -> Vec<String> {
 
 fn wanted() -> Vec<String> {
     let mut all: Vec<String> = FILES.iter().map(|s| (*s).to_owned()).collect();
-    all.push(MARK.to_owned());
     all.sort();
     all
 }
@@ -166,13 +163,14 @@ fn install_lands_every_file_and_status_says_installed() {
             );
         }
     }
-    #[cfg(unix)]
-    {
-        let store = home.join(".local/opt/pcmp/skills/pcmp");
-        assert_eq!(names(&store), wanted());
-        for dir in [&claude, &agents] {
-            assert_eq!(std::fs::read_link(dir).expect("a link"), store);
-        }
+    assert!(!home.join(".local").exists() && !home.join(".codex").exists());
+    for dir in [&claude, &agents] {
+        assert!(
+            !std::fs::symlink_metadata(dir)
+                .expect("there")
+                .file_type()
+                .is_symlink()
+        );
     }
 }
 
@@ -188,27 +186,14 @@ fn a_second_install_changes_nothing() {
 #[test]
 fn an_older_copy_is_replaced_and_the_files_a_new_version_drops_are_removed() {
     let home = fresh("older");
-    let store = home.join(".local/opt/pcmp/skills/pcmp");
-    std::fs::create_dir_all(&store).expect("store");
-    std::fs::write(store.join("SKILL.md"), "an older skill\n").expect("old");
-    std::fs::write(store.join("dropped.md"), "gone in the new one\n").expect("old");
-    std::fs::create_dir(store.join("extra")).expect("old");
-    std::fs::write(store.join("extra/deep.md"), "old\n").expect("old");
-    std::fs::write(store.join(MARK), "1.0.0\n").expect("old");
-    let status = said(&pcmp(&home, &["skill", "status"]));
-    assert!(
-        status.lines().all(|l| l.ends_with("not installed")),
-        "{status}"
-    );
-    #[cfg(unix)]
-    {
-        for rel in [".claude/skills", ".agents/skills"] {
-            std::fs::create_dir_all(home.join(rel)).expect("home");
-            std::os::unix::fs::symlink(&store, home.join(rel).join("pcmp")).expect("link");
-        }
-        let stale = said(&pcmp(&home, &["skill", "status"]));
-        assert_eq!(stale.matches("does not match pcmp").count(), 2, "{stale}");
-    }
+    let dir = home.join(".claude/skills/pcmp");
+    std::fs::create_dir_all(dir.join("extra")).expect("old");
+    std::fs::write(dir.join("SKILL.md"), "an older skill\n").expect("old");
+    std::fs::write(dir.join("dropped.md"), "gone in the new one\n").expect("old");
+    std::fs::write(dir.join("extra/deep.md"), "old\n").expect("old");
+    std::fs::write(dir.join(".pcmp-skill"), "1.0.0\n").expect("old");
+    let stale = said(&pcmp(&home, &["skill", "status"]));
+    assert_eq!(stale.matches("does not match pcmp").count(), 1, "{stale}");
     let out = pcmp(&home, &["skill", "install"]);
     assert_eq!(out.status.code(), Some(0));
     assert_eq!(
@@ -217,74 +202,67 @@ fn an_older_copy_is_replaced_and_the_files_a_new_version_drops_are_removed() {
         "{}",
         said(&out)
     );
-    assert_eq!(names(&store), wanted());
+    assert_eq!(names(&dir), wanted());
     for name in FILES {
         assert_eq!(
-            std::fs::read_to_string(store.join(name)).expect("new"),
+            std::fs::read_to_string(dir.join(name)).expect("new"),
             source(name),
             "{name}"
         );
     }
-    assert_eq!(names(&home.join(".claude/skills/pcmp")), wanted());
-}
-
-#[test]
-fn a_skill_folder_that_is_not_ours_is_left_alone() {
-    let home = fresh("foreign");
-    let theirs = home.join(".claude/skills/pcmp");
-    std::fs::create_dir_all(&theirs).expect("theirs");
-    std::fs::write(theirs.join("SKILL.md"), "somebody else's\n").expect("theirs");
-    let out = pcmp(&home, &["skill", "install"]);
-    assert_eq!(out.status.code(), Some(0));
-    let text = said(&out);
-    assert!(
-        text.contains("Claude skill: ")
-            && text.contains("is not the pcmp skill this install placed, left alone"),
-        "{text}"
-    );
-    assert!(text.contains("Agents skill: installed at "), "{text}");
-    assert_eq!(
-        std::fs::read_to_string(theirs.join("SKILL.md")).expect("kept"),
-        "somebody else's\n"
-    );
-    assert_eq!(names(&theirs), ["SKILL.md"]);
-    assert_eq!(names(&home.join(".agents/skills/pcmp")), wanted());
 }
 
 #[cfg(unix)]
 #[test]
-fn a_link_to_somewhere_else_is_left_alone() {
-    let home = fresh("elsewhere");
-    let elsewhere = home.join("my-skill");
-    std::fs::create_dir_all(&elsewhere).expect("mine");
-    std::fs::create_dir_all(home.join(".agents/skills")).expect("home");
-    std::os::unix::fs::symlink(&elsewhere, home.join(".agents/skills/pcmp")).expect("link");
-    let out = pcmp(&home, &["skill", "install"]);
-    assert_eq!(out.status.code(), Some(0));
-    assert!(said(&out).contains("left alone"), "{}", said(&out));
-    assert_eq!(
-        std::fs::read_link(home.join(".agents/skills/pcmp")).expect("kept"),
-        elsewhere
-    );
-    assert!(names(&elsewhere).is_empty());
-}
-
-#[cfg(unix)]
-#[test]
-fn a_store_linked_to_a_checkout_is_replaced_never_written_through() {
-    let home = fresh("through");
-    let checkout = home.join("checkout");
-    std::fs::create_dir_all(&checkout).expect("checkout");
-    std::fs::write(checkout.join("SKILL.md"), "the checkout's\n").expect("checkout");
+fn an_old_link_is_replaced_by_files_and_the_store_it_pointed_at_is_untouched() {
+    let home = fresh("link");
     let store = home.join(".local/opt/pcmp/skills/pcmp");
-    std::fs::create_dir_all(store.parent().expect("parent")).expect("opt");
-    std::os::unix::fs::symlink(&checkout, &store).expect("link");
-    assert_eq!(pcmp(&home, &["skill", "install"]).status.code(), Some(0));
+    std::fs::create_dir_all(&store).expect("store");
+    std::fs::write(store.join("SKILL.md"), "the store's\n").expect("store");
+    for rel in [".claude/skills", ".agents/skills"] {
+        std::fs::create_dir_all(home.join(rel)).expect("home");
+        std::os::unix::fs::symlink(&store, home.join(rel).join("pcmp")).expect("link");
+    }
+    let stale = said(&pcmp(&home, &["skill", "status"]));
+    assert_eq!(stale.matches("does not match pcmp").count(), 2, "{stale}");
+    let out = pcmp(&home, &["skill", "install"]);
+    assert_eq!(out.status.code(), Some(0));
     assert_eq!(
-        std::fs::read_to_string(checkout.join("SKILL.md")).expect("kept"),
-        "the checkout's\n"
+        said(&out).matches(", matches pcmp").count(),
+        2,
+        "{}",
+        said(&out)
     );
-    assert_eq!(names(&store), wanted());
+    for rel in [".claude/skills/pcmp", ".agents/skills/pcmp"] {
+        let dir = home.join(rel);
+        assert!(
+            !std::fs::symlink_metadata(&dir)
+                .expect("there")
+                .file_type()
+                .is_symlink()
+        );
+        assert_eq!(names(&dir), wanted());
+    }
+    assert_eq!(names(&store), ["SKILL.md"]);
+    assert_eq!(
+        std::fs::read_to_string(store.join("SKILL.md")).expect("kept"),
+        "the store's\n"
+    );
+}
+
+#[test]
+fn codex_and_pi_get_the_skill_only_when_their_folders_exist() {
+    let home = fresh("others");
+    std::fs::create_dir_all(home.join(".codex")).expect("codex");
+    let out = said(&pcmp(&home, &["skill", "install"]));
+    assert!(out.contains("Codex skill: installed at "), "{out}");
+    assert!(!out.contains("Pi skill"), "{out}");
+    assert_eq!(names(&home.join(".codex/skills/pcmp")), wanted());
+    assert!(!home.join(".pi").exists());
+    std::fs::create_dir_all(home.join(".pi")).expect("pi");
+    let out = said(&pcmp(&home, &["skill", "install"]));
+    assert_eq!(out.matches(", matches pcmp").count(), 4, "{out}");
+    assert_eq!(names(&home.join(".pi/agent/skills/pcmp")), wanted());
 }
 
 #[test]
@@ -338,7 +316,6 @@ fn the_readme_and_the_docs_say_pcmp_comes_with_a_skill_and_where_it_lands() {
         for needle in [
             "Claude skill",
             "pcmp skill install",
-            "~/.local/opt/pcmp/skills/pcmp",
             "~/.claude/skills",
             "~/.agents/skills",
         ] {

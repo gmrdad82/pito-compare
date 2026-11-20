@@ -90,7 +90,7 @@ charts/demo-ratio.png
 
 pcmp comes with a Claude skill, so your AI coding agent knows how to write the data file (JSON or TOML), pick between paired bars, the balanced ratio chart and single bars, style them, and read a refusal. It is a `SKILL.md` and four topic guides, built into the binary.
 
-`pcmp skill install` puts the skill in `~/.local/opt/pcmp/skills/pcmp` and links it into `~/.claude/skills/pcmp`, which Claude Code reads, and `~/.agents/skills/pcmp`, which other agents read. The install lines above run it for you, and so does `bin/install` from a clone. Every update runs it again: an older copy is replaced and a file a new version drops is removed. `pcmp skill status` says whether the skill is installed and matches this pcmp.
+`pcmp skill install` writes the skill as files into `~/.claude/skills/pcmp`, which Claude Code reads, and `~/.agents/skills/pcmp`, which other agents read, and into Codex's and Pi's skill folders when they exist. The install lines above run it for you, and so does `bin/install` from a clone. Every update runs it again: an older copy is replaced and a file a new version drops is removed. `pcmp skill status` says whether the skill is installed and matches this pcmp.
 
 On Windows there are no links, so the skill is copied into both folders under your user folder instead. A `pcmp` folder in either that pcmp did not place is left alone, with one line saying so.
 

@@ -22,14 +22,16 @@ The skill is built into the `pcmp` binary, so the copy always matches the pcmp t
 
 ## Where it lands
 
-`pcmp skill install` puts the skill in `~/.local/opt/pcmp/skills/pcmp` and links it into:
+`pcmp skill install` writes the skill as files into:
 
 | Agent | Folder |
 |---|---|
 | Claude Code | `~/.claude/skills/pcmp` |
 | Other agents | `~/.agents/skills/pcmp` |
+| Codex | `~/.codex/skills/pcmp`, when `~/.codex` exists |
+| Pi | `~/.pi/agent/skills/pcmp`, when `~/.pi` exists |
 
-On Windows there are no links: the skill is copied into both folders under your user folder (`%USERPROFILE%`), and there is no `~/.local/opt` copy.
+On Windows these are under your user folder (`%USERPROFILE%`). An older link to a store folder from earlier pcmp versions is replaced by real files.
 
 ## Installing and updating
 
@@ -43,4 +45,4 @@ Claude skill: installed at /home/ada/.claude/skills/pcmp, matches pcmp 1.3.0
 Agents skill: installed at /home/ada/.agents/skills/pcmp, matches pcmp 1.3.0
 ```
 
-A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.3.0; pcmp skill install refreshes it`. A `pcmp` folder or link there that pcmp did not place is left alone, with one line saying so.
+A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.3.0; pcmp skill install refreshes it`.

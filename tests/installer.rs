@@ -53,7 +53,6 @@ fn skill(name: &str) -> String {
 
 fn wanted() -> Vec<String> {
     let mut all: Vec<String> = FILES.iter().map(|s| (*s).to_owned()).collect();
-    all.push(".pcmp-skill".to_owned());
     all.sort();
     all
 }
@@ -87,21 +86,22 @@ fn lands_together(home: &Path) {
         std::fs::read_link(home.join(".local/bin/pcmp")).expect("a link"),
         installed
     );
-    let store = opt.join("skills/pcmp");
-    assert_eq!(names(&store), wanted());
-    for name in FILES {
-        assert_eq!(
-            std::fs::read_to_string(store.join(name)).expect("skill"),
-            skill(name),
-            "{name}"
-        );
-    }
     for rel in [".claude/skills/pcmp", ".agents/skills/pcmp"] {
-        assert_eq!(
-            std::fs::read_link(home.join(rel)).expect("a link"),
-            store,
-            "{rel}"
+        let dir = home.join(rel);
+        assert!(
+            !std::fs::symlink_metadata(&dir)
+                .expect("there")
+                .file_type()
+                .is_symlink()
         );
+        assert_eq!(names(&dir), wanted(), "{rel}");
+        for name in FILES {
+            assert_eq!(
+                std::fs::read_to_string(dir.join(name)).expect("skill"),
+                skill(name),
+                "{name}"
+            );
+        }
     }
     let status = Command::new(&installed)
         .args(["skill", "status"])
@@ -150,34 +150,19 @@ fn an_update_from_an_older_version_replaces_the_binary_and_the_skill() {
     let out = install(&home);
     works(&out);
     lands_together(&home);
-    assert!(!store.join("dropped.md").exists());
+    assert!(!home.join(".agents/skills/pcmp/dropped.md").exists());
+    assert_eq!(
+        std::fs::read_to_string(store.join("SKILL.md")).expect("store"),
+        "the 1.2.0 skill\n"
+    );
 }
 
 #[test]
-fn installing_again_changes_nothing_and_leaves_a_foreign_skill_folder_alone() {
+fn installing_again_changes_nothing() {
     let home = fresh("again");
     works(&install(&home));
     works(&install(&home));
     lands_together(&home);
-    let theirs = home.join(".claude/skills/pcmp");
-    std::fs::remove_file(&theirs).expect("unlink");
-    std::fs::create_dir(&theirs).expect("theirs");
-    std::fs::write(theirs.join("SKILL.md"), "somebody else's\n").expect("theirs");
-    let out = install(&home);
-    works(&out);
-    assert!(
-        String::from_utf8_lossy(&out.stdout).contains("left alone"),
-        "{}",
-        String::from_utf8_lossy(&out.stdout)
-    );
-    assert_eq!(
-        std::fs::read_to_string(theirs.join("SKILL.md")).expect("kept"),
-        "somebody else's\n"
-    );
-    assert_eq!(
-        std::fs::read_link(home.join(".agents/skills/pcmp")).expect("a link"),
-        home.join(".local/opt/pcmp/skills/pcmp")
-    );
 }
 
 #[test]

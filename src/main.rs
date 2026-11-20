@@ -28,7 +28,7 @@ With --kind all, one party draws bars; two or more draw the paired and ratio cha
 The README at https://github.com/gmrdad82/pito-compare has every field.
 
 pcmp comes with a skill for AI coding agents. `pcmp skill install` puts it in
-~/.local/opt/pcmp/skills/pcmp and links it into ~/.claude/skills and ~/.agents/skills.";
+~/.claude/skills/pcmp and ~/.agents/skills/pcmp as files.";
 
 #[derive(Parser)]
 #[command(

@@ -12,29 +12,23 @@ pub const FILES: [(&str, &str); 5] = [
     ("output.md", include_str!("../skills/pcmp/output.md")),
 ];
 
-const MARK: &str = ".pcmp-skill";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const HOMES: [(&str, &str); 2] = [
-    ("Claude skill", ".claude/skills/pcmp"),
-    ("Agents skill", ".agents/skills/pcmp"),
+const HOMES: [(&str, &str, Option<&str>); 4] = [
+    ("Claude skill", ".claude/skills/pcmp", None),
+    ("Agents skill", ".agents/skills/pcmp", None),
+    ("Codex skill", ".codex/skills/pcmp", Some(".codex")),
+    ("Pi skill", ".pi/agent/skills/pcmp", Some(".pi")),
 ];
 
 #[derive(Subcommand)]
 pub enum Action {
     #[command(
-        about = "put the pcmp skill in ~/.local/opt/pcmp/skills/pcmp and link it into ~/.claude/skills and ~/.agents/skills"
+        about = "write the pcmp skill as files into ~/.claude/skills/pcmp and ~/.agents/skills/pcmp, and into Codex's and Pi's skill folders when present"
     )]
     Install,
     #[command(about = "show whether the pcmp skill is installed in each agent's folder")]
     Status,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-enum Place {
-    Missing,
-    Ours,
-    Foreign,
 }
 
 fn home() -> Result<PathBuf, String> {
@@ -46,14 +40,6 @@ fn home() -> Result<PathBuf, String> {
         .ok_or_else(|| "no home folder: set HOME".to_owned())
 }
 
-fn store(home: &Path) -> PathBuf {
-    home.join(".local/opt/pcmp/skills/pcmp")
-}
-
-fn linked() -> bool {
-    cfg!(unix)
-}
-
 fn at(path: &Path, e: io::Error) -> String {
     format!("{}: {e}", path.display())
 }
@@ -63,6 +49,9 @@ fn is_link(path: &Path) -> bool {
 }
 
 fn matched(dir: &Path) -> bool {
+    if is_link(dir) {
+        return false;
+    }
     let mut have: Vec<String> = fs::read_dir(dir)
         .map(|entries| {
             entries
@@ -73,7 +62,6 @@ fn matched(dir: &Path) -> bool {
         .unwrap_or_default();
     have.sort();
     let mut want: Vec<&str> = FILES.iter().map(|(name, _)| *name).collect();
-    want.push(MARK);
     want.sort_unstable();
     have == want
         && FILES
@@ -81,28 +69,10 @@ fn matched(dir: &Path) -> bool {
             .all(|(name, text)| fs::read_to_string(dir.join(name)).is_ok_and(|have| have == *text))
 }
 
-fn place(dir: &Path, store: &Path) -> Place {
-    let Ok(meta) = fs::symlink_metadata(dir) else {
-        return Place::Missing;
-    };
-    if meta.file_type().is_symlink() {
-        return if fs::read_link(dir).is_ok_and(|to| to == store) {
-            Place::Ours
-        } else {
-            Place::Foreign
-        };
-    }
-    if meta.is_dir() && dir.join(MARK).is_file() {
-        Place::Ours
-    } else {
-        Place::Foreign
-    }
-}
-
 fn prune(dir: &Path) -> Result<(), String> {
     for entry in fs::read_dir(dir).map_err(|e| at(dir, e))?.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
-        if name == MARK || FILES.iter().any(|(kept, _)| *kept == name) {
+        if FILES.iter().any(|(kept, _)| *kept == name) {
             continue;
         }
         let path = entry.path();
@@ -124,66 +94,43 @@ fn write(dir: &Path) -> Result<(), String> {
     for (name, text) in FILES {
         fs::write(dir.join(name), text).map_err(|e| at(&dir.join(name), e))?;
     }
-    fs::write(dir.join(MARK), format!("{VERSION}\n")).map_err(|e| at(&dir.join(MARK), e))?;
     prune(dir)
 }
 
-#[cfg(unix)]
-fn link(dir: &Path, store: &Path) -> Result<(), String> {
-    if fs::symlink_metadata(dir).is_ok() {
-        if is_link(dir) {
-            return Ok(());
-        }
-        fs::remove_dir_all(dir).map_err(|e| at(dir, e))?;
-    }
-    if let Some(parent) = dir.parent() {
-        fs::create_dir_all(parent).map_err(|e| at(parent, e))?;
-    }
-    std::os::unix::fs::symlink(store, dir).map_err(|e| at(dir, e))
-}
-
-#[cfg(not(unix))]
-fn link(dir: &Path, _store: &Path) -> Result<(), String> {
-    write(dir)
-}
-
-fn describe(label: &str, dir: &Path, store: &Path) -> String {
-    match place(dir, store) {
-        Place::Missing => format!("{label}: not installed"),
-        Place::Foreign => format!(
-            "{label}: {} is not the pcmp skill this install placed, left alone",
+fn describe(label: &str, dir: &Path) -> String {
+    if matched(dir) {
+        format!(
+            "{label}: installed at {}, matches pcmp {VERSION}",
             dir.display()
-        ),
-        Place::Ours if matched(dir) => {
-            format!(
-                "{label}: installed at {}, matches pcmp {VERSION}",
-                dir.display()
-            )
-        }
-        Place::Ours => format!(
+        )
+    } else if fs::symlink_metadata(dir).is_ok() {
+        format!(
             "{label}: installed at {}, does not match pcmp {VERSION}; pcmp skill install refreshes it",
             dir.display()
-        ),
+        )
+    } else {
+        format!("{label}: not installed")
     }
+}
+
+fn present(home: &Path, gate: Option<&str>) -> bool {
+    gate.is_none_or(|gate| home.join(gate).is_dir())
 }
 
 fn status_in(home: &Path) -> Vec<String> {
-    let store = store(home);
     HOMES
         .iter()
-        .map(|(label, rel)| describe(label, &home.join(rel), &store))
+        .filter(|(_, rel, gate)| {
+            present(home, *gate) || fs::symlink_metadata(home.join(rel)).is_ok()
+        })
+        .map(|(label, rel, _)| describe(label, &home.join(rel)))
         .collect()
 }
 
 fn install_in(home: &Path) -> Result<Vec<String>, String> {
-    let store = store(home);
-    if linked() {
-        write(&store)?;
-    }
-    for (_, rel) in HOMES {
-        let dir = home.join(rel);
-        if place(&dir, &store) != Place::Foreign {
-            link(&dir, &store)?;
+    for (_, rel, gate) in HOMES {
+        if present(home, gate) {
+            write(&home.join(rel))?;
         }
     }
     Ok(status_in(home))

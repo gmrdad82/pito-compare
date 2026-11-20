@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- `pcmp skill install` writes the skill as real files into `~/.claude/skills/pcmp` and `~/.agents/skills/pcmp`, and into Codex's (`~/.codex/skills/pcmp`) and Pi's (`~/.pi/agent/skills/pcmp`) folders when those tools are there, like every other tool's skill install. An older link to the store folder is replaced by files, and the store is no longer written. `pcmp skill status` says whether each folder is installed and matches this pcmp.
+
 ## v1.3.1 — 2026-11-20
 
 ### Changed
