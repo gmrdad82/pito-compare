@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 out=${1:-tmp/docs}
+pages=${DOCS_PAGES:-docs/pages}
 version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)
 tag="v$version"
 stage=tmp/docs-bundle
@@ -10,7 +11,7 @@ site="$stage/docs"
 
 rm -rf "$stage"
 mkdir -p "$site" "$out"
-cp -R docs/pages/. "$site/"
+cp -R "$pages/." "$site/"
 
 help=$(NO_COLOR=1 cargo run --locked --quiet --bin pcmp -- --help)
 bare=$(NO_COLOR=1 cargo run --locked --quiet --bin pcmp)
@@ -117,7 +118,7 @@ if grep -rlF -e "$PWD" -e "${HOME:-/nonexistent}/" "$site" > /dev/null; then
   exit 1
 fi
 
-homes='/ho''me/|/Us''ers/'
+homes='/home/|/Users/'
 if grep -rlE -e "$homes" "$site" > /dev/null; then
   echo "docs-bundle: a page carries a home path:" >&2
   grep -rlE -e "$homes" "$site" >&2

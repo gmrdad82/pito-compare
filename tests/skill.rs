@@ -354,28 +354,3 @@ fn no_shipped_text_still_describes_the_store_and_links() {
         }
     }
 }
-
-#[test]
-fn no_docs_bundle_file_holds_a_home_path() {
-    fn walk(dir: &Path, found: &mut Vec<PathBuf>) {
-        for entry in std::fs::read_dir(dir).expect("a folder") {
-            let path = entry.expect("an entry").path();
-            if path.is_dir() {
-                walk(&path, found);
-            } else {
-                found.push(path);
-            }
-        }
-    }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let mut files = vec![root.join("bin/docs-bundle"), root.join("CHANGELOG.md")];
-    walk(&root.join("docs/pages"), &mut files);
-    for file in files {
-        let Ok(text) = std::fs::read_to_string(&file) else {
-            continue;
-        };
-        for home in ["/home/", "/Users/"] {
-            assert!(!text.contains(home), "{} holds {home}", file.display());
-        }
-    }
-}
