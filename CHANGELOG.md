@@ -4,7 +4,7 @@
 
 ### Changed
 
-- The docs bundle's skill page shows the `pcmp skill status` paths with `~`, so no home path is in the bundle; a test fails when any docs file holds `/home/` or `/Users/`.
+- The docs bundle's skill page shows the `pcmp skill status` paths with `~`, so no home path is in the bundle; a test fails when any docs file holds a home path.
 
 ## v1.3.2 — 2026-11-20
 

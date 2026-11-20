@@ -368,7 +368,7 @@ fn no_docs_bundle_file_holds_a_home_path() {
         }
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let mut files = vec![root.join("bin/docs-bundle")];
+    let mut files = vec![root.join("bin/docs-bundle"), root.join("CHANGELOG.md")];
     walk(&root.join("docs/pages"), &mut files);
     for file in files {
         let Ok(text) = std::fs::read_to_string(&file) else {
