@@ -3,47 +3,59 @@
 ## Where the charts go
 
 ```sh
-pcmp data.toml                    # PNGs in the current folder
-pcmp data.toml --out charts       # in charts/, made if missing
-pcmp data.toml --kind ratio       # only the ratio chart
+pcmp examples/speed.toml
+pcmp examples/speed.toml --out charts
+pcmp examples/speed.toml -k ratio -o charts
 ```
 
-Each chart is a PNG, 1080 px wide, written to `<out>/<stem>-<kind>.png`: `<out>` is `--out` (`.` by default) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
+The first writes `speed-paired.png` and `speed-ratio.png` in the working folder, the second the same in `charts/` (made if missing), the third only `charts/speed-ratio.png`. `--out` is `-o` and `--kind` is `-k`.
+
+Each chart is a PNG, 1080 px wide, written to `<out>/<stem>-<kind>.png`: `<out>` is `--out` (`.` by default) and `<stem>` is the data file's name without its extension. A PNG already there is replaced; a symlink there is refused, never written through.
 
 | `--kind` | One party | Two or more parties |
 | --- | --- | --- |
 | `all` (default) | `<stem>-bars.png` | `<stem>-paired.png`, `<stem>-ratio.png` |
-| `paired` | `<stem>-paired.png` | `<stem>-paired.png` |
-| `ratio` | `<stem>-ratio.png` | `<stem>-ratio.png` |
+| `paired` | refused | `<stem>-paired.png` |
+| `ratio` | refused unless every row has a `ratio` | `<stem>-ratio.png` |
 | `bars` | `<stem>-bars.png` | `<stem>-bars-<party>.png` for each party |
 
-`<party>` is the party's name in lower case with dashes; a name with no letters or digits, or one another party already took, is the party's place instead, from 1.
-
-The same data draws the same chart, pixel for pixel, on every machine.
+`<party>` is the party's name in lower case with dashes (`CACHE V2` is `cache-v2`); a name with no letters or digits, or one another party already took, is the party's place instead, from 1.
 
 ## stdout, stderr and the exit code
 
-- stdout is the path of each PNG written, one a line, in the order above, and nothing else. Read the paths from it.
+- stdout is the path of each PNG written, one a line, in the order above, and nothing else. With the default `--out` they are bare names (`speed-paired.png`), otherwise `<out>/<name>`. Read the paths from it.
 - Exit `0`: every chart drawn, stderr empty.
-- Exit `1`: one line on stderr, `pcmp: <file>: <what is wrong>`, naming the field (`groups[0].rows[2].values`) or the line and column where the file does not parse. No PNG is written for wrong data.
+- Exit `1`: one line on stderr, `pcmp: <file>: <what is wrong>`, naming the field (`groups[0].rows[2].values`) or the line and column where the file does not parse. A file that cannot be read is `pcmp: cannot read <file>: <why>`. Nothing is printed on stdout, but a chart drawn before the refusal is on disk; check `--out` after a refusal.
 - Exit `2`: the command line is wrong; clap's `error: ...`, the usage line and `For more information, try '--help'.`
+
+`groups[0].rows[0]` is the first row of the first group; a file with `rows` and no groups has them in one unnamed group.
 
 ## Reading a refusal
 
 | The line says | Do this |
 | --- | --- |
-| `values holds -612: values are finite and zero or more` | a value is negative or too large; values are measurements |
+| `values holds -612: values are finite and zero or more` | a value is negative or over 1e15; values are measurements |
 | `the chart font has no '€'` | write the character as letters (`EUR`) |
-| `unknown field` and the keys it expected | fix the key's spelling: `colour`, on a party |
+| `unknown field` | a key is misspelt; the line lists the keys it expected |
+| `missing field` | add the key it names: `title`, `better` or `parties` |
 | `values has 1 values for 2 parties` | one value per party, in the parties' order |
-| `is too long` (a title, label, party name or note word) | shorten it, or move detail into `notes` |
+| `title is too long: at most 41 characters fit` | shorten the text, or move detail into `notes`; every text has a limit (see [`data-file.md`](data-file.md)) |
+| `has a word longer than a line` | a word of a note is wider than the chart; break it up |
 | `the value texts are too long to fit beside the bars` | shorten the suffix or the texts |
-| `row 2 (FILE SIZE) has no values to draw as bars` | draw `--kind ratio` only |
-| `has no ratio: the compared values must be above zero` | give the row a `ratio`, or drop `--kind ratio` |
-| `invalid value 'nope' for '--kind <KIND>'` | `--kind` is all, paired, ratio or bars |
-
-`groups[0].rows[0]` is the first row of the first group; a file with `rows` and no groups has them in one unnamed group.
+| `row 1 (FILE SIZE) has no values to draw as bars` | the row has only a `ratio`; draw `--kind ratio` only |
+| `row 1 (R) has no ratio: the compared values must be above zero` | give the row a `ratio`, or draw only `--kind paired` |
+| `the paired chart needs two parties or more` | one party draws as `--kind bars` |
+| `the ratio chart needs two parties, or a ratio on every row` | one party draws as `--kind bars` |
+| `give rows or groups, not both` | use one of the two |
+| `parties[1].name repeats parties[0]` | party names differ, ignoring case |
+| `parties has 13 parties: a chart draws at most 12` | split the parties across charts |
+| `versus names "C", which is no party` | `versus` is a party's name |
+| `versus must name a party other than the first` | the first party is the one compared; name another |
+| `the ratio chart's unit line is too long` | the `words` are too long; a word or two each |
+| `parties[0].colour is "orange": use #RRGGBB or a role` | write `#RRGGBB` or a role (see [`styling.md`](styling.md)) |
+| `cannot read nope.toml` | the file is missing or unreadable; check the path |
+| `invalid value 'nope' for '--kind <KIND>'` | exit 2; `--kind` is `all`, `paired`, `ratio` or `bars` |
 
 ## Checking the picture
 
-When the PNG is the deliverable, open it and read it once: title, the tags' direction, the notes. For a quick check that nothing is off, `file chart.png` reports a 1080 px wide PNG.
+When the PNG is the deliverable, open it and read it once: title, the tags' direction, the notes. For a quick check that nothing is off, `file charts/speed-paired.png` reports a 1080 px wide PNG.
