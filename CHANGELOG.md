@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## v1.3.1 — 2026-11-20
 
 ### Changed
 
-- The pcmp skill is made for pcmp: every command and flag it names is in `pcmp --help` (the short forms `-o`, `-k`, `-h` and `-V` too), every command it shows runs against `examples/`, every data file in it draws and every refusal it reads is one pcmp prints. It says what pcmp does that an agent would trip on: `--kind paired` is refused for one party, a chart drawn before a refusal stays on disk and is not printed, a zero value draws as bars but not on the ratio chart, and how many characters each text holds. `tests/skill_drift.rs` keeps it so.
+- The pcmp skill matches the command line again. It is made for pcmp: every command and flag it names is in `pcmp --help` (the short forms `-o`, `-k`, `-h` and `-V` too), every command it shows runs against `examples/`, every data file in it draws and every refusal it reads is one pcmp prints. It says what pcmp does that an agent would trip on: `--kind paired` is refused for one party, a chart drawn before a refusal stays on disk and is not printed, a zero value draws as bars but not on the ratio chart, and how many characters each text holds. `tests/skill_drift.rs` keeps it so.
 
 ## v1.3.0 — 2026-11-19
 
