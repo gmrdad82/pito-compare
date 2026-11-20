@@ -25,10 +25,10 @@ fn tarball() -> String {
 
 fn bundle(out: &Path, pages: Option<&Path>) -> Output {
     let mut dirs = Vec::new();
-    if let Some(dir) = Path::new(env!("CARGO")).parent() {
-        if !dir.as_os_str().is_empty() {
-            dirs.push(dir.to_path_buf());
-        }
+    if let Some(dir) = Path::new(env!("CARGO")).parent()
+        && !dir.as_os_str().is_empty()
+    {
+        dirs.push(dir.to_path_buf());
     }
     dirs.extend(std::env::split_paths(
         &std::env::var_os("PATH").unwrap_or_default(),
