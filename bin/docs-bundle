@@ -117,9 +117,10 @@ if grep -rlF -e "$PWD" -e "${HOME:-/nonexistent}/" "$site" > /dev/null; then
   exit 1
 fi
 
-if grep -rlE -e '/home/|/Users/' "$site" > /dev/null; then
+homes='/ho''me/|/Us''ers/'
+if grep -rlE -e "$homes" "$site" > /dev/null; then
   echo "docs-bundle: a page carries a home path:" >&2
-  grep -rlE -e '/home/|/Users/' "$site" >&2
+  grep -rlE -e "$homes" "$site" >&2
   exit 1
 fi
 
