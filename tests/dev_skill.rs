@@ -326,6 +326,7 @@ fn every_command_the_skill_names_exists_and_its_flags_are_real() {
         "bin/gate",
         "bin/images",
         "bin/docs-bundle",
+        "bin/install",
         "pcmp",
         "cargo",
         "git",
@@ -355,6 +356,51 @@ fn the_quick_check_the_skill_describes_is_what_the_gate_runs() {
         assert!(skill.contains(named), "{named}");
     }
     assert!(skill.contains("ending `gate: green`"));
+}
+
+#[test]
+fn the_local_install_row_is_what_bin_install_does() {
+    let skill = text();
+    let row = skill
+        .lines()
+        .find(|line| line.starts_with("| `bin/install` |"))
+        .expect("a bin/install row in the command table");
+    let installer = std::fs::read_to_string(root().join("bin/install")).expect("bin/install");
+    for step in [
+        "cargo build --release --locked --bin pcmp",
+        "opt=\"$HOME/.local/opt/pcmp\"",
+        "bin=\"$HOME/.local/bin\"",
+        "ln -sfn \"$opt/pcmp\" \"$bin/pcmp\"",
+        "\"$opt/pcmp\" skill install",
+    ] {
+        assert!(installer.contains(step), "{step}");
+    }
+    for named in [
+        "local install",
+        "release binary",
+        "~/.local/opt/pcmp/pcmp",
+        "~/.local/bin/pcmp",
+        "`pcmp skill install`",
+        "user skill",
+        "~/.claude/skills/pcmp",
+        "~/.agents/skills/pcmp",
+        "no window app",
+        "after a release",
+        "a build that will be used",
+    ] {
+        assert!(row.contains(named), "{named}");
+    }
+    assert!(skill.contains("update the local install with `bin/install`"));
+    let usage = Command::new("bash")
+        .arg(root().join("bin/install"))
+        .arg("--help")
+        .env_clear()
+        .env("PATH", std::env::var_os("PATH").unwrap_or_default())
+        .env("HOME", scratch("install-usage"))
+        .output()
+        .expect("bash runs bin/install");
+    assert_eq!(usage.status.code(), Some(2));
+    assert!(said(&usage).starts_with("usage: bin/install"));
 }
 
 #[test]

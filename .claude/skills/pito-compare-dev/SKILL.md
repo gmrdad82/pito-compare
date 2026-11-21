@@ -1,6 +1,6 @@
 ---
 name: pito-compare-dev
-description: "Develop pito-compare itself: the `pito_compare` Rust library and `pcmp`, its command line that draws paired, ratio and single-bar chart PNGs from a JSON or TOML file. Triggers: pito-compare, pito_compare, pcmp source, bin/gate, bin/images, bin/docs-bundle, bin/install, src/chart.rs, src/draw.rs, src/canvas.rs, src/skill.rs, a refusal message, the data format, the pixel font, the look of a chart, tests/look.rs, tests/skill_drift.rs, docs/pages, the docs bundle, CHANGELOG, a pcmp release. Excludes drawing a chart with pcmp (that is the pcmp skill, shipped from this repository's skills/pcmp folder)."
+description: "Develop pito-compare itself: the `pito_compare` Rust library and `pcmp`, its command line that draws paired, ratio and single-bar chart PNGs from a JSON or TOML file. Triggers: pito-compare, pito_compare, pcmp source, bin/gate, bin/images, bin/docs-bundle, bin/install, src/chart.rs, src/draw.rs, src/canvas.rs, src/skill.rs, a refusal message, the data format, the pixel font, the look of a chart, tests/look.rs, tests/skill_drift.rs, docs/pages, the docs bundle, CHANGELOG, a pcmp release, the local install. Excludes drawing a chart with pcmp (that is the pcmp skill, shipped from this repository's skills/pcmp folder)."
 ---
 
 # pito-compare development
@@ -33,7 +33,7 @@ The rules live in `AGENTS.md` (`CLAUDE.md` imports it), and `prompts/RESUME.md` 
 - **A chart is never wrong.** Bad data is refused with one line (`pcmp: <file>: <what>`, exit 1) and no PNG. Do not loosen a refusal to make a file draw. Its text lives in `src/chart.rs` or `src/draw.rs`; the refusals `skills/pcmp/output.md` lists are also pinned by a case in `tests/skill_drift.rs`, so change them together.
 - **The look is pixel exact.** `tests/look.rs` compares the examples' charts with `docs/images`. After a change to colours, font, sizes or layout, run `bin/images` and commit the changed PNGs. Never edit a PNG by hand, and leave `docs/images/draw.gif` alone: it is made with prec and pcod from `render/terminal.toml`.
 - **The command line and its skill move together.** `tests/skill_drift.rs` fails when a flag, command or kind of `pcmp --help` is missing from `skills/pcmp/`, or the other way round.
-- **Never run `bin/install` or `pcmp skill install` for real.** `bin/install` replaces the developer's own `~/.local/bin/pcmp`, and both write their skill folders under `~/.claude` and `~/.agents`. The tests use a temporary `HOME` and `PCMP_BINARY`.
+- **Run `bin/install` or `pcmp skill install` for real only as the local install row says.** `bin/install` replaces `~/.local/bin/pcmp`, and both write their skill folders under `~/.claude` and `~/.agents`, so never as a check or a try-out. The tests use a temporary `HOME` and `PCMP_BINARY`.
 - **No home path in the docs.** `bin/docs-bundle` refuses a Linux or macOS home-folder path in any generated file, so docs and the changelog show `~`.
 - **This is a public repository.** Tracked files, this skill included, hold nothing internal: no private repositories, paths on a machine, people, prices, keys or plans.
 - Code has no comments and tests are deterministic: scratch folders under `CARGO_TARGET_TMPDIR`, fixed data, no sleeps.
@@ -63,9 +63,10 @@ The rules live in `AGENTS.md` (`CLAUDE.md` imports it), and `prompts/RESUME.md` 
 | `cargo run --locked --bin pcmp -- examples/speed.toml --out tmp/charts` | draw an example from the working tree into the git-ignored `tmp/` |
 | `bin/images` | redraw `docs/images` from `examples/` and `bench/`; `PCMP` names a binary to use instead of building one |
 | `bin/docs-bundle` | build `docs-vX.Y.Z.tar.gz` into `tmp/docs` from `docs/pages`, `pcmp --help`, the changelog and `cargo doc`, and print its path |
+| `bin/install` | the local install, run from a clone's root: builds the release binary, puts it in `~/.local/opt/pcmp/pcmp`, links it from `~/.local/bin/pcmp` and runs `pcmp skill install` for the user skill (`~/.claude/skills/pcmp`, `~/.agents/skills/pcmp`); pcmp has no window app. Run it again to update: after a release (from `main` at the tag), or after a build that will be used. It takes no flag and has no `--help` |
 | `pcmp --help`, `pcmp skill --help` | every flag, command and kind of the command line |
 
-`pcmp --help` and `cargo <command> --help` are the source of truth for their options. The scripts in `bin/` are short and have no `--help`: read the script (`bin/gate` and `bin/install` print a usage line on a wrong argument).
+`pcmp --help` and `cargo <command> --help` are the source of truth for their options. The scripts in `bin/` are short and have no `--help`: read the script (`bin/gate` and `bin/install` print a usage line on a wrong argument, and nothing is installed then).
 
 ## Decision framework
 
@@ -76,4 +77,4 @@ The rules live in `AGENTS.md` (`CLAUDE.md` imports it), and `prompts/RESUME.md` 
 5. **A docs page** → `docs/pages/` with its frontmatter, edited with the code it describes; check it with `bin/docs-bundle`.
 6. **The product skill's text** → `skills/pcmp/`, then `cargo test --locked --test skill_drift --test skill --test installer`.
 7. **This skill** → edit it, then `cargo test --locked --test dev_skill`.
-8. **A release, only when asked** → bump the version everywhere the pitfalls list, write the changelog entry (`## vX.Y.Z — date` with `### Added`, `### Changed` or `### Fixed`), then follow `AGENTS.md`: it names the archives (Linux, macOS and Windows binaries, the docs bundle and `SHA256SUMS`) and how they are built and published. A release that ships a bug gets a quick fix release.
+8. **A release, only when asked** → bump the version everywhere the pitfalls list, write the changelog entry (`## vX.Y.Z — date` with `### Added`, `### Changed` or `### Fixed`), then follow `AGENTS.md`: it names the archives (Linux, macOS and Windows binaries, the docs bundle and `SHA256SUMS`) and how they are built and published. A release that ships a bug gets a quick fix release. After the release, update the local install with `bin/install`.
