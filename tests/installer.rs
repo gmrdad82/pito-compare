@@ -176,3 +176,65 @@ fn the_installer_refuses_arguments() {
     assert_eq!(out.status.code(), Some(2));
     assert_eq!(String::from_utf8_lossy(&out.stderr), "usage: bin/install\n");
 }
+
+fn release_install(name: &str, machine: &str) -> (Output, String) {
+    let home = fresh(name);
+    let bins = home.join("fakebin");
+    std::fs::create_dir_all(&bins).expect("fake bin");
+    let uname = bins.join("uname");
+    std::fs::write(&uname, format!("#!/bin/sh\necho {machine}\n")).expect("uname");
+    std::fs::set_permissions(&uname, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+    let stage = home.join("stage");
+    let tag = home.join("stage/v9.9.9");
+    std::fs::create_dir_all(&tag).expect("stage");
+    let pack = |asset: &str| {
+        let status = Command::new("tar")
+            .arg("-czf")
+            .arg(tag.join(asset))
+            .arg("-C")
+            .arg(Path::new(env!("CARGO_BIN_EXE_pcmp")).parent().unwrap())
+            .arg("pcmp")
+            .status()
+            .expect("tar");
+        assert!(status.success());
+    };
+    pack("pcmp-v9.9.9-linux-x86_64.tar.gz");
+    pack("pcmp-v9.9.9-linux-aarch64.tar.gz");
+    let path = format!(
+        "{}:{}",
+        bins.display(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+    let out = Command::new("bash")
+        .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("bin/install"))
+        .env_clear()
+        .env("PATH", path)
+        .env("HOME", &home)
+        .env("PCMP_RELEASE", "v9.9.9")
+        .env("PCMP_RELEASE_BASE", format!("file://{}", stage.display()))
+        .output()
+        .expect("bash runs bin/install");
+    (out, home.display().to_string())
+}
+
+#[test]
+fn a_release_install_picks_the_aarch64_asset_for_uname_aarch64() {
+    let (out, _) = release_install("rel-arm", "aarch64");
+    works(&out);
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("pcmp-v9.9.9-linux-aarch64.tar.gz"), "{text}");
+}
+
+#[test]
+fn a_release_install_picks_the_x86_64_asset_for_uname_x86_64() {
+    let (out, _) = release_install("rel-x86", "x86_64");
+    works(&out);
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(text.contains("pcmp-v9.9.9-linux-x86_64.tar.gz"), "{text}");
+}
+
+#[test]
+fn a_release_install_refuses_a_machine_without_a_build() {
+    let (out, _) = release_install("rel-none", "riscv64");
+    assert!(!out.status.success());
+}

@@ -12,6 +12,19 @@ bin="$HOME/.local/bin"
 
 if [ -n "${PCMP_BINARY:-}" ]; then
   built=$PCMP_BINARY
+elif [ -n "${PCMP_RELEASE:-}" ]; then
+  case "$(uname -m)" in
+    x86_64 | amd64) arch=x86_64 ;;
+    aarch64 | arm64) arch=aarch64 ;;
+    *) echo "bin/install: no Linux build for $(uname -m)" >&2; exit 1 ;;
+  esac
+  asset="pcmp-$PCMP_RELEASE-linux-$arch.tar.gz"
+  base=${PCMP_RELEASE_BASE:-https://github.com/gmrdad82/pito-compare/releases/download}
+  fetched=$(mktemp -d)
+  trap 'rm -rf "$fetched"' EXIT
+  echo "bin/install: $asset"
+  curl -fsSL "$base/$PCMP_RELEASE/$asset" | tar -xz -C "$fetched" pcmp
+  built=$fetched/pcmp
 else
   cargo build --release --locked --bin pcmp
   target=$(cargo metadata --format-version 1 --no-deps | grep -o '"target_directory":"[^"]*"' | cut -d'"' -f4)

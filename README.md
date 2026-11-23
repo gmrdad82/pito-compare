@@ -25,13 +25,14 @@ Measured on 2026-10-15 on an AMD Ryzen 9 9950X (32 threads) under Linux, with Ru
 
 ## Install and first use
 
-pcmp runs on Linux (x86_64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for all three, with a `SHA256SUMS` file. The lines below also put pcmp's [Claude skill](#works-with-your-ai-agent) in place with `pcmp skill install`, and running them again updates the binary and the skill together.
+pcmp runs on Linux (x86_64 and aarch64), Windows (x86_64) and macOS (Apple Silicon). Each [release](https://github.com/gmrdad82/pito-compare/releases/latest) carries a binary for each, with a `SHA256SUMS` file. The lines below also put pcmp's [Claude skill](#works-with-your-ai-agent) in place with `pcmp skill install`, and running them again updates the binary and the skill together.
 
-**Linux:**
+**Linux** (x86_64 or aarch64, picked by `uname -m`):
 
 ```
 v=$(basename "$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/gmrdad82/pito-compare/releases/latest)")
-mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-x86_64.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
+a=$(uname -m); case $a in arm64) a=aarch64 ;; amd64) a=x86_64 ;; esac
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/gmrdad82/pito-compare/releases/download/$v/pcmp-$v-linux-$a.tar.gz" | tar -xz -C ~/.local/bin pcmp && ~/.local/bin/pcmp skill install
 ```
 
 **macOS:**
