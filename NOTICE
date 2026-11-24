@@ -20,6 +20,11 @@ bench's was measured once against matplotlib on 2026-10-15:
 - docs/images/pcmp-vs-matplotlib-paired.png and
   docs/images/pcmp-vs-matplotlib-ratio.png: bench/pcmp-vs-matplotlib.toml
 
+Charts drawn by pcmp for tests/golden.rs, under the MIT licence like the code, from
+examples/speed.toml and examples/build.toml and from the made-up data in
+tests/golden/*.toml (the test run with PCMP_UPDATE_GOLDEN=1 redraws them):
+- tests/golden/405-*.png, tests/golden/540-*.png and tests/golden/1080-*.png
+
 Terminal clip recorded by prec from this repository's own shot
 (render/terminal.toml and the tape and data in render/terminal/), made a GIF by
 pcod (pito-codecs, https://github.com/gmrdad82/pito-codecs), under the MIT

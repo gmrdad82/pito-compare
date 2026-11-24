@@ -44,6 +44,7 @@ rows = [
 | `suffix` | no | Written after each value, such as `" FPS"`. |
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | The words of the tags and the ratio chart (see [`styling.md`](styling.md)). |
+| `bare` | no | `true` draws a bare chart, for a small picture with nothing extra: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty `subtitle` and `date`, or no `notes`, leave no gap where they would be, and when the three `words` are all `"-"` the tags of the paired chart leave the dash out (`2.5×` instead of `2.5× -`, nothing for a row of the same speed). `false` by default, so a data file made before this key draws the same pixels. |
 
 Any other key is refused, with the keys it expected.
 
@@ -66,7 +67,7 @@ A row needs `values`, a `ratio` or both. The paired bars and single bars need `v
 
 ## How much text fits
 
-Each text has the room of the 1080 px chart, and one that does not fit is refused, naming its field. With `--width 540` the room is smaller (the title holds 27 characters, the unit line and a row label 41): shorten the text, or draw at 1080.
+Each text has the room of the 1080 px chart, and one that does not fit is refused, naming its field. With `--width 540` the room is smaller (the title holds 27 characters, the unit line and a row label 41): shorten the text, or draw at 1080. With `--width 405` the title holds 31 characters at size 2 and up to 41 at size 1, and every other text holds 62 characters a line.
 
 | Text | Characters |
 | --- | --- |

@@ -3,7 +3,7 @@ use crate::chart::{Chart, Words};
 use crate::{Error, Result};
 
 pub const WIDTH: i64 = 1080;
-pub const WIDTHS: [i64; 2] = [540, 1080];
+pub const WIDTHS: [i64; 3] = [405, 540, 1080];
 pub const LEFT: i64 = 40;
 pub const ROW: i64 = 124;
 pub const RATIO_ROW: i64 = 66;
@@ -17,102 +17,297 @@ pub const MAX_VALUE: f64 = 1e15;
 #[derive(Clone, Copy, Debug)]
 pub struct Look {
     half: bool,
+    native: bool,
+    wide: i64,
+    w: i64,
+    left: i64,
+    margin: i64,
     title: usize,
     body: usize,
     small: usize,
+    shrink: i64,
     unit_y: i64,
+    unit_pitch: i64,
     sub_y: i64,
+    sub_pitch: i64,
     legend_y: i64,
     legend_step: i64,
+    swatch_w: i64,
     swatch_h: i64,
+    swatch_gap: i64,
+    item_gap: i64,
     top: i64,
+    tick_up: i64,
     off: i64,
     step: i64,
     bar_h: i64,
     bar_text: i64,
+    grid_up: i64,
+    zero_w: i64,
+    min_bar: i64,
+    value_gap: i64,
+    tag_gap: i64,
+    tag_drop: i64,
+    row_pad: i64,
+    note_first: i64,
     note_step: i64,
+    bottom_pad: i64,
+    end_pad: i64,
     reserve: i64,
+    aw_min: i64,
+    group_h: i64,
+    sep_y: i64,
+    sep_h: i64,
+    group_name_y: i64,
+    cap_y: i64,
+    cap_room: i64,
+    ratio_top: i64,
+    ratio_tick_a: i64,
+    ratio_tick_b: i64,
     ratio_row: i64,
     ratio_grid: i64,
     ratio_grid_h: i64,
     ratio_bar: i64,
+    ratio_bar_h: i64,
     ratio_tag: i64,
+    ratio_side: i64,
+    ratio_tag_gap: i64,
+    tick_gap: i64,
+}
+
+const FULL: Look = Look {
+    half: false,
+    native: false,
+    wide: 1080,
+    w: WIDTH,
+    left: LEFT,
+    margin: 32,
+    title: 4,
+    body: 3,
+    small: 2,
+    shrink: 0,
+    unit_y: 80,
+    unit_pitch: 38,
+    sub_y: 118,
+    sub_pitch: 36,
+    legend_y: 154,
+    legend_step: 34,
+    swatch_w: 30,
+    swatch_h: 21,
+    swatch_gap: 42,
+    item_gap: 50,
+    top: 250,
+    tick_up: 40,
+    off: 32,
+    step: BAR_STEP,
+    bar_h: 26,
+    bar_text: 3,
+    grid_up: 4,
+    zero_w: 2,
+    min_bar: 2,
+    value_gap: 12,
+    tag_gap: 24,
+    tag_drop: 2,
+    row_pad: 28,
+    note_first: 30,
+    note_step: NOTE,
+    bottom_pad: 40,
+    end_pad: 30,
+    reserve: 230,
+    aw_min: 300,
+    group_h: GROUP,
+    sep_y: 6,
+    sep_h: 2,
+    group_name_y: 22,
+    cap_y: 160,
+    cap_room: 20,
+    ratio_top: 270,
+    ratio_tick_a: 62,
+    ratio_tick_b: 42,
+    ratio_row: RATIO_ROW,
+    ratio_grid: 24,
+    ratio_grid_h: 28,
+    ratio_bar: 27,
+    ratio_bar_h: 22,
+    ratio_tag: 28,
+    ratio_side: 90,
+    ratio_tag_gap: 10,
+    tick_gap: 14,
+};
+
+const HALF: Look = Look {
+    half: true,
+    wide: 540,
+    title: 6,
+    body: 4,
+    unit_y: 84,
+    unit_pitch: 44,
+    sub_y: 128,
+    legend_y: 164,
+    legend_step: 42,
+    swatch_h: 28,
+    top: 270,
+    off: 40,
+    step: 36,
+    bar_h: 30,
+    bar_text: 2,
+    note_step: 38,
+    reserve: 300,
+    ratio_row: 74,
+    ratio_grid: 32,
+    ratio_grid_h: 30,
+    ratio_bar: 36,
+    ratio_tag: 32,
+    ..FULL
+};
+
+const SLIM: Look = Look {
+    half: false,
+    native: true,
+    wide: 405,
+    w: 405,
+    left: 15,
+    margin: 12,
+    title: 2,
+    body: 1,
+    small: 1,
+    shrink: 0,
+    unit_y: 32,
+    unit_pitch: 14,
+    sub_y: 46,
+    sub_pitch: 14,
+    legend_y: 60,
+    legend_step: 13,
+    swatch_w: 11,
+    swatch_h: 7,
+    swatch_gap: 16,
+    item_gap: 19,
+    top: 96,
+    tick_up: 15,
+    off: 11,
+    step: 12,
+    bar_h: 10,
+    bar_text: 2,
+    grid_up: 1,
+    zero_w: 1,
+    min_bar: 1,
+    value_gap: 5,
+    tag_gap: 9,
+    tag_drop: 1,
+    row_pad: 10,
+    note_first: 11,
+    note_step: 11,
+    bottom_pad: 15,
+    end_pad: 11,
+    reserve: 86,
+    aw_min: 112,
+    group_h: 21,
+    sep_y: 2,
+    sep_h: 1,
+    group_name_y: 8,
+    cap_y: 60,
+    cap_room: 8,
+    ratio_top: 106,
+    ratio_tick_a: 26,
+    ratio_tick_b: 17,
+    ratio_row: 25,
+    ratio_grid: 9,
+    ratio_grid_h: 11,
+    ratio_bar: 10,
+    ratio_bar_h: 9,
+    ratio_tag: 11,
+    ratio_side: 34,
+    ratio_tag_gap: 4,
+    tick_gap: 5,
+};
+
+#[derive(Clone, Copy, Debug)]
+struct Flow {
+    unit_y: i64,
+    sub_y: i64,
+    shift: i64,
+}
+
+fn widths_text() -> String {
+    let names: Vec<String> = WIDTHS.iter().map(|w| w.to_string()).collect();
+    match names.split_last() {
+        Some((last, rest)) => format!("{} and {last}", rest.join(", ")),
+        None => String::new(),
+    }
 }
 
 impl Look {
     pub fn new(width: i64) -> Result<Self> {
         match width {
-            1080 => Ok(Self {
-                half: false,
-                title: 4,
-                body: 3,
-                small: 2,
-                unit_y: 80,
-                sub_y: 118,
-                legend_y: 154,
-                legend_step: 34,
-                swatch_h: 21,
-                top: 250,
-                off: 32,
-                step: BAR_STEP,
-                bar_h: 26,
-                bar_text: 3,
-                note_step: NOTE,
-                reserve: 230,
-                ratio_row: RATIO_ROW,
-                ratio_grid: 24,
-                ratio_grid_h: 28,
-                ratio_bar: 27,
-                ratio_tag: 28,
-            }),
-            540 => Ok(Self {
-                half: true,
-                title: 6,
-                body: 4,
-                small: 2,
-                unit_y: 84,
-                sub_y: 128,
-                legend_y: 164,
-                legend_step: 42,
-                swatch_h: 28,
-                top: 270,
-                off: 40,
-                step: 36,
-                bar_h: 30,
-                bar_text: 2,
-                note_step: 38,
-                reserve: 300,
-                ratio_row: 74,
-                ratio_grid: 32,
-                ratio_grid_h: 30,
-                ratio_bar: 36,
-                ratio_tag: 32,
-            }),
+            1080 => Ok(FULL),
+            540 => Ok(HALF),
+            405 => Ok(SLIM),
             _ => Err(Error::new(format!(
                 "the width {width} cannot be drawn well: the widths are {}",
-                WIDTHS.map(|w| w.to_string()).join(" and ")
+                widths_text()
             ))),
         }
     }
 
     pub fn width(&self) -> i64 {
-        if self.half { WIDTH / 2 } else { WIDTH }
+        self.wide
+    }
+
+    fn fitted(mut self, chart: &Chart) -> Self {
+        if self.native
+            && self.title > 1
+            && Canvas::text_width(&chart.title, self.title) > self.w - 2 * self.left
+        {
+            self.shrink = 7 * (self.title as i64 - 1);
+            self.title = 1;
+        }
+        self
+    }
+
+    fn flow(&self, chart: &Chart, unit: &str) -> Flow {
+        let mut shift = self.shrink;
+        let unit_y = self.unit_y - shift;
+        if chart.bare && unit.is_empty() {
+            shift += self.unit_pitch;
+        }
+        let sub_y = self.sub_y - shift;
+        if chart.bare && chart.subtitle_line().is_empty() {
+            shift += self.sub_pitch;
+        }
+        Flow {
+            unit_y,
+            sub_y,
+            shift,
+        }
     }
 
     fn row_height(&self, n: i64) -> i64 {
-        self.off + 28 + n * self.step
+        self.off + self.row_pad + n * self.step
+    }
+
+    fn height(&self, chart: &Chart, bottom: i64, end: i64, notes: usize) -> i64 {
+        if chart.bare && notes == 0 {
+            end + self.margin
+        } else {
+            bottom + self.bottom_pad + notes as i64 * self.note_step + self.end_pad
+        }
+    }
+
+    fn line(&self) -> usize {
+        ((self.w - 2 * self.left) / (6 * self.body as i64)) as usize
     }
 
     fn check(&self, chart: &Chart) -> Result<()> {
-        if !self.half {
+        if self.wide == WIDTH {
             return Ok(());
         }
+        let wide = self.wide;
         let fit = |at: &str, text: &str, scale: usize, extra: i64| -> Result<()> {
-            let room = WIDTH - 2 * LEFT - extra;
+            let room = self.w - 2 * self.left - extra;
             if Canvas::text_width(text, scale) > room {
                 let max = (room + scale as i64) / (6 * scale as i64);
                 return Err(Error::new(format!(
-                    "{at} is too long for a 540 px wide chart: at most {max} characters fit"
+                    "{at} is too long for a {wide} px wide chart: at most {max} characters fit"
                 )));
             }
             Ok(())
@@ -121,7 +316,12 @@ impl Look {
         fit("unit", &chart.unit_line(), self.body, 0)?;
         fit("subtitle and date", &chart.subtitle_line(), self.small, 0)?;
         for (i, p) in chart.parties.iter().enumerate() {
-            fit(&format!("parties[{i}].name"), &p.name, self.body, 42)?;
+            fit(
+                &format!("parties[{i}].name"),
+                &p.name,
+                self.body,
+                self.swatch_gap,
+            )?;
         }
         for (gi, g) in chart.groups.iter().enumerate() {
             fit(&format!("groups[{gi}].name"), &g.name, self.small, 0)?;
@@ -134,11 +334,11 @@ impl Look {
                 )?;
             }
         }
-        let max = ((WIDTH - 2 * LEFT) / (6 * self.body as i64)) as usize;
+        let max = self.line();
         for (i, n) in chart.notes.iter().enumerate() {
             if let Some(w) = n.split_whitespace().find(|w| w.chars().count() > max) {
                 return Err(Error::new(format!(
-                    "notes[{i}] has a word longer than a line of a 540 px wide chart ({max} characters): {w}"
+                    "notes[{i}] has a word longer than a line of a {wide} px wide chart ({max} characters): {w}"
                 )));
             }
         }
@@ -146,8 +346,7 @@ impl Look {
     }
 }
 
-fn wrap(text: &str, scale: usize) -> Vec<String> {
-    let max = ((WIDTH - 2 * LEFT) / (6 * scale as i64)) as usize;
+fn wrap(text: &str, max: usize) -> Vec<String> {
     let mut lines = Vec::new();
     let mut line = String::new();
     for word in text.split_whitespace() {
@@ -166,7 +365,7 @@ fn wrap(text: &str, scale: usize) -> Vec<String> {
 }
 
 fn note_lines(notes: &[String], l: &Look) -> Vec<String> {
-    notes.iter().flat_map(|n| wrap(n, l.body)).collect()
+    notes.iter().flat_map(|n| wrap(n, l.line())).collect()
 }
 
 pub fn number(n: f64) -> String {
@@ -189,6 +388,15 @@ pub fn times(r: f64, words: &Words) -> String {
     } else {
         format!("{n}× {word}")
     }
+}
+
+fn tag_text(chart: &Chart, ratio: f64) -> String {
+    let text = times(ratio, &chart.words);
+    let w = &chart.words;
+    if chart.bare && [&w.better, &w.worse, &w.same].into_iter().all(|s| s == "-") {
+        return text.strip_suffix(" -").unwrap_or("").to_string();
+    }
+    text
 }
 
 fn tone(r: f64) -> Color {
@@ -250,22 +458,22 @@ fn tick_text(v: f64, step: f64) -> String {
     }
 }
 
-fn header(c: &mut Canvas, l: &Look, title: &str, unit: &str, subtitle: &str) {
-    c.text(LEFT, 32, title, l.title, TEXT);
-    c.text(LEFT, l.unit_y, unit, l.body, TEXT);
-    c.text(LEFT, l.sub_y, subtitle, l.small, DIM);
+fn header(c: &mut Canvas, l: &Look, f: &Flow, title: &str, unit: &str, subtitle: &str) {
+    c.text(l.left, l.margin, title, l.title, TEXT);
+    c.text(l.left, f.unit_y, unit, l.body, TEXT);
+    c.text(l.left, f.sub_y, subtitle, l.small, DIM);
 }
 
-fn group_row(c: &mut Canvas, y: i64, name: &str, first: bool) {
+fn group_row(c: &mut Canvas, l: &Look, y: i64, name: &str, first: bool) {
     if !first {
-        c.rect(LEFT, y + 6, WIDTH - 2 * LEFT, 2, SEP);
+        c.rect(l.left, y + l.sep_y, l.w - 2 * l.left, l.sep_h, SEP);
     }
-    c.text(LEFT, y + 22, name, 2, DIM);
+    c.text(l.left, y + l.group_name_y, name, l.small, DIM);
 }
 
 type Slots = Vec<(i64, Option<(i64, String)>)>;
 
-fn layout(chart: &Chart, top: i64, row: i64) -> (Slots, i64) {
+fn layout(chart: &Chart, top: i64, row: i64, group: i64) -> (Slots, i64) {
     let mut at = Vec::new();
     let mut y = top;
     for g in &chart.groups {
@@ -273,7 +481,7 @@ fn layout(chart: &Chart, top: i64, row: i64) -> (Slots, i64) {
             None
         } else {
             let h = Some((y, g.name.clone()));
-            y += GROUP;
+            y += group;
             h
         };
         for _ in &g.rows {
@@ -284,9 +492,9 @@ fn layout(chart: &Chart, top: i64, row: i64) -> (Slots, i64) {
     (at, y)
 }
 
-fn draw_groups(c: &mut Canvas, at: &Slots) {
+fn draw_groups(c: &mut Canvas, l: &Look, at: &Slots) {
     for (i, (gy, name)) in at.iter().filter_map(|(_, h)| h.as_ref()).enumerate() {
-        group_row(c, *gy, name, i == 0);
+        group_row(c, l, *gy, name, i == 0);
     }
 }
 
@@ -298,32 +506,33 @@ fn canvas(height: i64, l: &Look) -> Result<Canvas> {
         )));
     }
     Ok(if l.half {
-        Canvas::halved(l.width() as usize, height as usize)
+        Canvas::halved(l.wide as usize, height as usize)
     } else {
-        Canvas::new(WIDTH as usize, height as usize)
+        Canvas::new(l.wide as usize, height as usize)
     })
 }
 
-fn legend(c: Option<&mut Canvas>, l: &Look, items: &[(&str, Color)]) -> i64 {
+fn legend(c: Option<&mut Canvas>, l: &Look, at: i64, items: &[(&str, Color)]) -> i64 {
     let mut c = c;
-    let (mut x, mut y) = (LEFT, l.legend_y);
+    let (mut x, mut y) = (l.left, at);
     for (name, colour) in items {
-        let w = 42 + Canvas::text_width(name, l.body);
-        if x > LEFT && x + w > WIDTH - LEFT {
-            x = LEFT;
+        let w = l.swatch_gap + Canvas::text_width(name, l.body);
+        if x > l.left && x + w > l.w - l.left {
+            x = l.left;
             y += l.legend_step;
         }
         if let Some(c) = c.as_deref_mut() {
-            c.rect(x, y, 30, l.swatch_h, *colour);
-            c.text(x + 42, y, name, l.body, TEXT);
+            c.rect(x, y, l.swatch_w, l.swatch_h, *colour);
+            c.text(x + l.swatch_gap, y, name, l.body, TEXT);
         }
-        x += w + 50;
+        x += w + l.item_gap;
     }
-    y - l.legend_y
+    y - at
 }
 
 fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<Canvas> {
     chart.check()?;
+    let l = &l.fitted(chart);
     l.check(chart)?;
     if let Some((i, _)) = chart
         .rows()
@@ -336,26 +545,47 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
             chart.rows().nth(i).map_or("", |r| r.label.as_str())
         )));
     }
+    if l.native && tags {
+        for (i, r) in chart.rows().enumerate() {
+            if let Some(ratio) = chart.ratio(r) {
+                let lw = Canvas::text_width(&r.shown_label(), l.body);
+                let tw = Canvas::text_width(&tag_text(chart, ratio), l.body);
+                if lw + l.tag_gap + tw > l.w - 2 * l.left {
+                    return Err(Error::new(format!(
+                        "row {} ({}) and its tag do not fit one line of a {} px wide chart: shorten the label or the words",
+                        i + 1,
+                        r.label,
+                        l.wide
+                    )));
+                }
+            }
+        }
+    }
     let n = parties.len() as i64;
     let items: Vec<(&str, Color)> = parties
         .iter()
         .map(|&p| (chart.parties[p].name.as_str(), chart.parties[p].colour))
         .collect();
-    let extra = legend(None, l, &items);
-    let top = l.top + extra;
+    let unit = chart.unit_line();
+    let flow = l.flow(chart, &unit);
+    let legend_y = l.legend_y - flow.shift;
+    let extra = legend(None, l, legend_y, &items);
+    let top = l.top - flow.shift + extra;
     let row_height = l.row_height(n);
-    let (at, bottom) = layout(chart, top, row_height);
+    let (at, bottom) = layout(chart, top, row_height, l.group_h);
     let notes = note_lines(&chart.notes, l);
-    let height = bottom + 40 + notes.len() as i64 * l.note_step + 30;
+    let end = bottom - l.row_pad - l.grid_up;
+    let height = l.height(chart, bottom, end, notes.len());
     let mut c = canvas(height, l)?;
     header(
         &mut c,
         l,
+        &flow,
         &chart.title,
-        &chart.unit_line(),
+        &unit,
         &chart.subtitle_line(),
     );
-    legend(Some(&mut c), l, &items);
+    legend(Some(&mut c), l, legend_y, &items);
     let max = chart
         .rows()
         .flat_map(|r| parties.iter().map(|&p| r.values[p]))
@@ -368,7 +598,7 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
             "the values reach {max:e}: an axis is drawn up to {MAX_VALUE:e}"
         )));
     }
-    let mut aw = WIDTH - 2 * LEFT - l.reserve;
+    let mut aw = l.w - 2 * l.left - l.reserve;
     for r in chart.rows() {
         for &p in parties {
             let v = r.values[p];
@@ -376,62 +606,67 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
                 continue;
             }
             let tw = Canvas::text_width(&chart.value_text(r, p), l.body);
-            let room = WIDTH - 2 * LEFT - 12 - tw;
+            let room = l.w - 2 * l.left - l.value_gap - tw;
             let fit = (room as f64 * peak / v).floor() as i64;
             aw = aw.min(fit);
         }
     }
-    if aw < 300 {
+    if aw < l.aw_min {
         return Err(Error::new(
             "the value texts are too long to fit beside the bars: shorten the suffix or the texts",
         ));
     }
-    let x = |v: f64| LEFT + (v / peak * aw as f64).round() as i64;
+    let x = |v: f64| l.left + (v / peak * aw as f64).round() as i64;
     let mut grid = Vec::new();
+    let mut last = i64::MIN;
     for t in ticks(step, peak) {
         let gx = x(t);
         grid.push((gx, t == 0.0));
         let label = tick_text(t, step);
-        let w = Canvas::text_width(&label, 2);
-        c.text(
-            gx - if t == 0.0 { 0 } else { w / 2 },
-            top - 40,
-            &label,
-            2,
-            DIM,
-        );
+        let w = Canvas::text_width(&label, l.small);
+        let lx = gx - if t == 0.0 { 0 } else { w / 2 };
+        if l.native && lx < last + l.tick_gap {
+            return Err(Error::new(format!(
+                "the axis labels overlap on a {} px wide chart: use smaller values",
+                l.wide
+            )));
+        }
+        last = lx + w;
+        c.text(lx, top - l.tick_up, &label, l.small, DIM);
     }
-    draw_groups(&mut c, &at);
+    draw_groups(&mut c, l, &at);
     for (r, (y, _)) in chart.rows().zip(&at) {
         let y = *y;
         for &(gx, zero) in &grid {
             c.rect(
                 gx,
-                y + l.off - 4,
-                if zero { 2 } else { 1 },
+                y + l.off - l.grid_up,
+                if zero { l.zero_w } else { 1 },
                 l.step * n,
                 if zero { DIM } else { GRID },
             );
         }
         let label = r.shown_label();
-        c.text(LEFT, y, &label, l.body, TEXT);
+        c.text(l.left, y, &label, l.body, TEXT);
         if tags && let Some(ratio) = chart.ratio(r) {
-            let tag = times(ratio, &chart.words);
-            let tw = Canvas::text_width(&tag, l.body);
-            let lw = Canvas::text_width(&label, l.body);
-            let ty = if LEFT + lw + 24 + tw > WIDTH - LEFT {
-                y + l.off + 2
-            } else {
-                y
-            };
-            c.text(WIDTH - LEFT - tw, ty, &tag, l.body, tone(ratio));
+            let tag = tag_text(chart, ratio);
+            if !tag.is_empty() {
+                let tw = Canvas::text_width(&tag, l.body);
+                let lw = Canvas::text_width(&label, l.body);
+                let ty = if l.left + lw + l.tag_gap + tw > l.w - l.left {
+                    y + l.off + l.tag_drop
+                } else {
+                    y
+                };
+                c.text(l.w - l.left - tw, ty, &tag, l.body, tone(ratio));
+            }
         }
         for (i, &p) in parties.iter().enumerate() {
             let by = y + l.off + i as i64 * l.step;
-            let len = (x(r.values[p]) - LEFT).max(2);
-            c.rect(LEFT, by, len, l.bar_h, chart.parties[p].colour);
+            let len = (x(r.values[p]) - l.left).max(l.min_bar);
+            c.rect(l.left, by, len, l.bar_h, chart.parties[p].colour);
             c.text(
-                LEFT + len + 12,
+                l.left + len + l.value_gap,
                 by + l.bar_text,
                 &chart.value_text(r, p),
                 l.body,
@@ -441,8 +676,8 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
     }
     for (i, line) in notes.iter().enumerate() {
         c.text(
-            LEFT,
-            bottom + 30 + i as i64 * l.note_step,
+            l.left,
+            bottom + l.note_first + i as i64 * l.note_step,
             line,
             l.body,
             DIM,
@@ -486,8 +721,9 @@ pub fn ratios(chart: &Chart) -> Result<Canvas> {
 }
 
 pub fn ratios_at(chart: &Chart, width: i64) -> Result<Canvas> {
-    let l = &Look::new(width)?;
+    let l = Look::new(width)?;
     chart.check()?;
+    let l = &l.fitted(chart);
     l.check(chart)?;
     if chart.parties.len() < 2 && chart.rows().any(|r| r.ratio.is_none()) {
         return Err(Error::new(
@@ -514,36 +750,47 @@ pub fn ratios_at(chart: &Chart, width: i64) -> Result<Canvas> {
     let words = &chart.words;
     let worse_caption = format!("< {} THAN {versus}", words.worse);
     let better_caption = format!("{} THAN {versus} >", words.better);
-    let half_room = (WIDTH - 2 * LEFT) / 2 - 20;
-    if Canvas::text_width(&worse_caption, 2) > half_room
-        || Canvas::text_width(&better_caption, 2) > half_room
+    let half_room = (l.w - 2 * l.left) / 2 - l.cap_room;
+    if Canvas::text_width(&worse_caption, l.small) > half_room
+        || Canvas::text_width(&better_caption, l.small) > half_room
     {
         return Err(Error::new(format!(
             "the ratio chart's captions are too long: \"{better_caption}\" must fit half the width"
         )));
     }
     let unit = format!("TIMES {} OR {}, LOG SCALE", words.better, words.worse);
-    if Canvas::text_width(&unit, l.body) > WIDTH - 2 * LEFT {
+    if Canvas::text_width(&unit, l.body) > l.w - 2 * l.left {
         return Err(Error::new(format!(
             "the ratio chart's unit line is too long: {unit}"
         )));
     }
-    let top = 270i64;
-    let (at, bottom) = layout(chart, top, l.ratio_row);
+    let flow = l.flow(chart, &unit);
+    let top = l.ratio_top - flow.shift;
+    let (at, bottom) = layout(chart, top, l.ratio_row, l.group_h);
     let notes = note_lines(&chart.notes, l);
-    let height = bottom + 40 + notes.len() as i64 * l.note_step + 30;
+    let end =
+        bottom - l.ratio_row + (l.ratio_grid + l.ratio_grid_h).max(l.ratio_bar + l.ratio_bar_h);
+    let height = l.height(chart, bottom, end, notes.len());
     let mut c = canvas(height, l)?;
-    header(&mut c, l, &chart.title, &unit, &chart.subtitle_line());
+    header(
+        &mut c,
+        l,
+        &flow,
+        &chart.title,
+        &unit,
+        &chart.subtitle_line(),
+    );
     let worst = speedups.iter().map(|s| s.max(1.0 / s)).fold(1.0, f64::max);
     let decades = [2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 500.0, 1000.0];
     let bound = decades.into_iter().find(|d| *d >= worst).unwrap_or(1000.0);
-    let cx = WIDTH / 2;
-    let half = cx - LEFT - 90;
+    let cx = l.w / 2;
+    let half = cx - l.left - l.ratio_side;
     let x =
         |r: f64| cx + (r.clamp(1.0 / bound, bound).ln() / bound.ln() * half as f64).round() as i64;
-    c.text(LEFT, 160, &worse_caption, l.small, DIM);
-    let fw = Canvas::text_width(&better_caption, 2);
-    c.text(WIDTH - LEFT - fw, 160, &better_caption, 2, DIM);
+    let cap_y = l.cap_y - flow.shift;
+    c.text(l.left, cap_y, &worse_caption, l.small, DIM);
+    let fw = Canvas::text_width(&better_caption, l.small);
+    c.text(l.w - l.left - fw, cap_y, &better_caption, l.small, DIM);
     let mut ticks = vec![1.0];
     ticks.extend(decades.into_iter().filter(|d| *d <= bound));
     let mut grid = Vec::new();
@@ -572,59 +819,79 @@ pub fn ratios_at(chart: &Chart, width: i64) -> Result<Canvas> {
                     },
                 )
             };
-            let w = Canvas::text_width(&a, 2).max(Canvas::text_width(b, 2));
-            let (l, r_) = (gx - w / 2, gx + w / 2);
+            let w = Canvas::text_width(&a, l.small).max(Canvas::text_width(b, l.small));
+            let (lo, hi) = (gx - w / 2, gx + w / 2);
             let fits = match edge {
                 None => true,
-                Some(e) if side > 0.0 => l > e + 14,
-                Some(e) => r_ < e - 14,
+                Some(e) if side > 0.0 => lo > e + l.tick_gap,
+                Some(e) => hi < e - l.tick_gap,
             };
-            if !fits || l < LEFT || r_ > WIDTH - LEFT {
+            if !fits || lo < l.left || hi > l.w - l.left {
                 continue;
             }
             if t == 1.0 {
-                centre = Some((l, r_));
+                centre = Some((lo, hi));
             }
-            edge = Some(if side > 0.0 { r_ } else { l });
-            c.text(gx - Canvas::text_width(&a, 2) / 2, top - 62, &a, 2, DIM);
-            c.text(gx - Canvas::text_width(b, 2) / 2, top - 42, b, 2, DIM);
+            edge = Some(if side > 0.0 { hi } else { lo });
+            c.text(
+                gx - Canvas::text_width(&a, l.small) / 2,
+                top - l.ratio_tick_a,
+                &a,
+                l.small,
+                DIM,
+            );
+            c.text(
+                gx - Canvas::text_width(b, l.small) / 2,
+                top - l.ratio_tick_b,
+                b,
+                l.small,
+                DIM,
+            );
         }
     }
-    draw_groups(&mut c, &at);
-    for ((r, speedup), (y, _)) in chart.rows().zip(&speedups).zip(&at) {
+    draw_groups(&mut c, l, &at);
+    for (i, ((r, speedup), (y, _))) in chart.rows().zip(&speedups).zip(&at).enumerate() {
         let (y, speedup) = (*y, *speedup);
         for &(gx, one) in &grid {
             c.rect(
                 gx,
                 y + l.ratio_grid,
-                if one { 2 } else { 1 },
+                if one { l.zero_w } else { 1 },
                 l.ratio_grid_h,
                 if one { DIM } else { GRID },
             );
         }
-        c.text(LEFT, y, &r.shown_label(), l.body, TEXT);
+        c.text(l.left, y, &r.shown_label(), l.body, TEXT);
         let (x0, x1) = (x(1.0), x(speedup));
         let colour = if speedup >= 1.0 { FASTER } else { SLOWER };
         c.rect(
             x0.min(x1),
             y + l.ratio_bar,
-            (x1 - x0).abs().max(2),
-            22,
+            (x1 - x0).abs().max(l.min_bar),
+            l.ratio_bar_h,
             colour,
         );
         let tag = format!("{}×", number(speedup.max(1.0 / speedup)));
         let tw = Canvas::text_width(&tag, l.body);
         let tx = if speedup >= 1.0 {
-            x1.max(x0) + 10
+            x1.max(x0) + l.ratio_tag_gap
         } else {
-            x1.min(x0) - 10 - tw
+            x1.min(x0) - l.ratio_tag_gap - tw
         };
+        if l.native && (tx < l.left || tx + tw > l.w - l.left) {
+            return Err(Error::new(format!(
+                "row {} ({}) has a tag too wide for a {} px wide chart: {tag}",
+                i + 1,
+                r.label,
+                l.wide
+            )));
+        }
         c.text(tx, y + l.ratio_tag, &tag, l.body, TEXT);
     }
     for (i, line) in notes.iter().enumerate() {
         c.text(
-            LEFT,
-            bottom + 30 + i as i64 * l.note_step,
+            l.left,
+            bottom + l.note_first + i as i64 * l.note_step,
             line,
             l.body,
             DIM,

@@ -41,8 +41,8 @@ The [install lines](../install/) for Linux, macOS and Windows run `pcmp skill in
 
 ```
 $ pcmp skill status
-Claude skill: installed at ~/.claude/skills/pcmp, matches pcmp 1.4.0
-Agents skill: installed at ~/.agents/skills/pcmp, matches pcmp 1.4.0
+Claude skill: installed at ~/.claude/skills/pcmp, matches pcmp 1.5.0
+Agents skill: installed at ~/.agents/skills/pcmp, matches pcmp 1.5.0
 ```
 
-A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.4.0; pcmp skill install refreshes it`.
+A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.5.0; pcmp skill install refreshes it`.

@@ -10,13 +10,14 @@ pcmp examples/speed.toml -k ratio -o charts
 
 The first writes `speed-paired.png` and `speed-ratio.png` in the working folder, the second the same in `charts/` (made if missing), the third only `charts/speed-ratio.png`. `--out` is `-o` and `--kind` is `-k`.
 
-`--width <PX>` (`-w`) is how wide each PNG is: `1080` (the default) or `540`, for a small picture such as one in a chat notification.
+`--width <PX>` (`-w`) is how wide each PNG is: `1080` (the default), `540` or `405`, for a small picture such as one in a chat notification.
 
 ```sh
 pcmp examples/speed.toml --width 540 --out charts
+pcmp examples/speed.toml --width 405 --out charts
 ```
 
-Another width is refused with one line (`pcmp: --width: the width 700 cannot be drawn well: the widths are 540 and 1080`) and exit code 2, and nothing is drawn. At 540 the texts have less room, and one that does not fit is refused, naming its field, like at 1080.
+Another width is refused with one line (`pcmp: --width: the width 700 cannot be drawn well: the widths are 405, 540 and 1080`) and exit code 2, and nothing is drawn. At 540 and 405 the texts have less room, and one that does not fit is refused, naming its field, like at 1080. At 405 the title is drawn at size 2, or at size 1 when it does not fit at 2, and every other text at size 1.
 
 Each chart is a PNG, 1080 px wide by default (`--width`), written to `<out>/<stem>-<kind>.png`: `<out>` is `--out` (`.` by default) and `<stem>` is the data file's name without its extension. A PNG already there is replaced; a symlink there is refused, never written through.
 
@@ -66,4 +67,4 @@ Each chart is a PNG, 1080 px wide by default (`--width`), written to `<out>/<ste
 
 ## Checking the picture
 
-When the PNG is the deliverable, open it and read it once: title, the tags' direction, the notes. For a quick check that nothing is off, `file charts/speed-paired.png` reports a 1080 px wide PNG (540 with `--width 540`).
+When the PNG is the deliverable, open it and read it once: title, the tags' direction, the notes. For a quick check that nothing is off, `file charts/speed-paired.png` reports a 1080 px wide PNG (540 or 405 with `--width`).

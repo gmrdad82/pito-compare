@@ -24,7 +24,8 @@ The data file is JSON or TOML (by its extension, else by its first character):
   rows = [{ label = \"H.264 1080P\", values = [412, 298], mark = \"*\" }]
 
 Each PNG is written to <out>/<data file's stem>-<kind>.png and its path printed.
---width 540 draws every chart half as wide, for a small picture; any other width but 1080 is refused.
+--width 405 or 540 draws every chart at that width, for a small picture; any other width but 1080 is refused.
+bare = true in the data file leaves out the line of an empty unit, the dash of a row whose texts are all \"-\" and the gap of an empty subtitle, date or notes.
 With --kind all, one party draws bars; two or more draw the paired and ratio charts.
 The README at https://github.com/gmrdad82/pito-compare has every field.
 
@@ -71,7 +72,7 @@ struct Cli {
         long,
         value_name = "PX",
         default_value_t = 1080,
-        help = "how wide each PNG is: 540 or 1080"
+        help = "how wide each PNG is: 405, 540 or 1080"
     )]
     width: i64,
 }
@@ -149,7 +150,7 @@ fn print(lines: &[String]) {
 const FORMS: [(&str, &str); 4] = [
     (
         "pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]",
-        "draw the charts of a .json or .toml file: all, paired, ratio or bars, 540 or 1080 px wide",
+        "draw the charts of a .json or .toml file: all, paired, ratio or bars, 405, 540 or 1080 px wide",
     ),
     (
         "pcmp skill install|status",

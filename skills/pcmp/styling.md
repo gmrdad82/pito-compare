@@ -1,6 +1,6 @@
 # Styling
 
-pcmp has one look: its colours, its pixel font, 1080 px wide, or 540 with `--width 540` for a small picture. What you choose is below. There is no theme or font option, and the width is one of those two.
+pcmp has one look: its colours, its pixel font, 1080 px wide, or 540 or 405 with `--width` for a small picture. What you choose is below. There is no theme or font option, and the width is one of those three.
 
 ## Party colours
 
@@ -44,6 +44,7 @@ words = { better = "SMALLER", worse = "LARGER", same = "SAME SIZE" }
 
 - A row's `mark = "*"` (or `†`) is written after its label.
 - `notes = ["* NOT LIKE FOR LIKE: V1 SKIPS THE VALIDATION PASS."]` are lines under the chart, wrapped at spaces to its width. Use one to explain each mark, to say the data is a sample, and to say how it was measured.
+- `bare = true` leaves out what an empty `unit`, `subtitle`, `date` or `notes` would leave blank, and the dash of a tag when the three `words` are all `"-"`.
 - `subtitle` and `date` make the small line under the unit, joined with a comma, such as the machine and the day.
 
 ## Your own text and ratio

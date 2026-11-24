@@ -64,6 +64,7 @@ pub struct Chart {
     pub suffix: String,
     pub decimals: Option<usize>,
     pub words: Words,
+    pub bare: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -123,6 +124,7 @@ impl Chart {
             suffix: String::new(),
             decimals: None,
             words: Words::default(),
+            bare: false,
         }
     }
 
@@ -189,6 +191,9 @@ impl Chart {
     }
 
     pub fn unit_line(&self) -> String {
+        if self.bare && self.unit.is_empty() {
+            return String::new();
+        }
         let better = match self.better {
             Better::Higher => "HIGHER IS BETTER",
             Better::Lower => "LOWER IS BETTER",
@@ -415,6 +420,8 @@ struct Spec {
     decimals: Option<usize>,
     #[serde(default)]
     words: WordsSpec,
+    #[serde(default)]
+    bare: bool,
 }
 
 #[derive(Deserialize)]
@@ -536,6 +543,7 @@ impl Spec {
                 worse: self.words.worse.unwrap_or(defaults.worse),
                 same: self.words.same.unwrap_or(defaults.same),
             },
+            bare: self.bare,
         })
     }
 }

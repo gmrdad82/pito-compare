@@ -57,6 +57,7 @@ rows = [
 | `suffix` | no | Written after each value, such as `" FPS"` or `"×"`. |
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | The words of the tags and the ratio chart. |
+| `bare` | no | `true` draws a bare chart, for a small picture with nothing extra: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty `subtitle` and `date`, or no `notes`, leave no gap where they would be, and when the three `words` are all `"-"` the tags of the paired chart leave the dash out (`2.5×` instead of `2.5× -`, nothing for a row of the same speed). `false` by default, so a data file made before this key draws the same pixels. |
 
 Any other key is refused, so a misspelt key never goes unnoticed.
 
@@ -106,7 +107,7 @@ Every text in the chart is drawn in a 5x7 pixel font: A to Z (lower case is draw
 
 ### The PNGs
 
-Each chart is a PNG, 1080 px wide (`--width 540` draws a 540 px one, with less room for text), written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
+Each chart is a PNG, 1080 px wide (`--width 540` and `--width 405` draw smaller ones, with less room for text), written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
 
 | `--kind` | One party | Two or more parties |
 |---|---|---|

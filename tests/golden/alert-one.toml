@@ -1,0 +1,16 @@
+title = "JOBS WAITING"
+better = "lower"
+bare = true
+decimals = 0
+
+[[parties]]
+name = "QUEUE"
+colour = "faster"
+
+[[groups]]
+name = "WORKERS"
+rows = [
+  { label = "EMAIL", values = [12] },
+  { label = "IMPORT", values = [0] },
+  { label = "EXPORT", values = [40] },
+]

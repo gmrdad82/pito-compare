@@ -722,3 +722,26 @@ fn toml_groups_nest_their_rows() {
     assert_eq!(shape, [("G1", vec!["r1"]), ("G2", vec!["r2", "r3"])]);
     assert_eq!(c.groups[1].rows[1].values, [5.0, 6.0]);
 }
+
+#[test]
+fn bare_is_off_unless_the_file_says_so() {
+    let text = "title = \"T\"\nbetter = \"higher\"\nparties = [{ name = \"A\" }]\nrows = [{ label = \"R\", values = [1] }]\n";
+    assert!(!Chart::parse(text, Format::Toml).expect("parses").bare);
+    let on = format!("{text}bare = true\n");
+    assert!(Chart::parse(&on, Format::Toml).expect("parses").bare);
+    let json = r#"{"title":"T","better":"lower","bare":true,"parties":[{"name":"A"}],"rows":[{"label":"R","values":[1]}]}"#;
+    assert!(Chart::parse(json, Format::Json).expect("parses").bare);
+    let bad = format!("{text}bare = \"yes\"\n");
+    assert!(Chart::parse(&bad, Format::Toml).is_err());
+}
+
+#[test]
+fn a_bare_chart_has_no_unit_line_when_the_unit_is_empty() {
+    let mut c = chart();
+    c.unit = String::new();
+    assert_eq!(c.unit_line(), "LOWER IS BETTER");
+    c.bare = true;
+    assert_eq!(c.unit_line(), "");
+    c.unit = "ms".into();
+    assert_eq!(c.unit_line(), "ms, LOWER IS BETTER");
+}

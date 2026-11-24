@@ -171,9 +171,9 @@ pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built fo
 
 ```
 $ pcmp
-pcmp 1.3.0: draws comparison charts as PNGs from a JSON or TOML data file
+pcmp 1.5.0: draws comparison charts as PNGs from a JSON or TOML data file
 
-  pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]  draw the charts of a .json or .toml file: all, paired, ratio or bars, 540 or 1080 px wide
+  pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]  draw the charts of a .json or .toml file: all, paired, ratio or bars, 405, 540 or 1080 px wide
   pcmp skill install|status                                 install the skill pcmp comes with for Claude Code and other agents, or check it
   pcmp --help                                               the full help, with every option and the data format
   pcmp --version                                            print the version
@@ -184,13 +184,13 @@ Each PNG is written to <dir>/<data file's stem>-<kind>.png and its path printed.
 In full:
 
 ```
-pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars] [--width 540|1080]
+pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars] [--width 405|540|1080]
 ```
 
 - `DATA` is a `.json` or `.toml` file (any other name is read as JSON when it starts with `{`, else as TOML).
 - `--out` is the folder the PNGs go to, made if missing; the current folder by default.
 - `--kind all` (the default) draws single bars for one party, and the paired and ratio charts for two or more. `paired`, `ratio` and `bars` draw one kind; `bars` with several parties draws one chart per party.
-- `--width` (`-w`) is how wide each PNG is: `1080` (the default) or `540`, a small picture for a chat notification. At 540 every text is drawn at a whole-number size of the same pixel font, so it stays sharp, and the texts have less room: the title holds 27 characters instead of 41. Any other width is refused with one line naming the two, and exit code 2.
+- `--width` (`-w`) is how wide each PNG is: `1080` (the default), `540` or `405`, small pictures for a chat notification (405 is three quarters of 540). At 540 and 405 every text is drawn at a whole-number size of the same pixel font, so it stays sharp, and the texts have less room: at 540 the title holds 27 characters instead of 41. At 405 the title is drawn at size 2 when it fits (31 characters) and at size 1 when it does not, every other text is at size 1 (62 characters a line), and the bars, gaps and margins are whole pixels. A text that does not fit is refused, naming its field. Any other width is refused with one line naming 405, 540 and 1080, and exit code 2.
 
 Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there (never through a symlink), and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party. A party whose name has no letters or digits, or gives a file name another party already took, is numbered by its place instead: `speed-bars-2.png` for the second, or `speed-bars-2-2.png` when that name is taken too.
 
@@ -241,6 +241,7 @@ The same in JSON is an object with the same keys: `{"title": "PARSE SPEED", "bet
 | `suffix` | no | Written after each value, such as `" FPS"` or `"×"`. |
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | `{ better = "FASTER", worse = "SLOWER", same = "SAME SPEED" }`, the words of the tags and the ratio chart. |
+| `bare` | no | `true` draws a bare chart, for a small picture with nothing extra: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty `subtitle` and `date`, or no `notes`, leave no gap where they would be, and when the three `words` are all `"-"` the tags of the paired chart leave the dash out (`2.5×` instead of `2.5× -`, nothing for a row of the same speed). `false` by default, so a data file made before this key draws the same pixels. |
 
 Each row has a `label`, its `values` (one per party, zero to 1e15) and optionally a `mark` written after the label, `texts` to print in place of the values (one per party), and a `ratio` to use in place of the one the values give.
 

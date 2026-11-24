@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0 — 2026-11-25
+
+### Added
+
+- `--width 405`: every chart kind drawn three quarters as wide as 540, for alerts read in a chat. The pixel font stays at whole sizes: the title at size 2, or size 1 when it does not fit at 2 (31 characters), and every other text at size 1 (62 characters a line); bars, gaps and margins are whole pixels, so every text stays sharp and nothing overlaps or is cut. A text that does not fit, a tag or an axis label that would be cut or run into the next is refused, naming the field. Any other width is refused with one line naming 405, 540 and 1080.
+- `bare = true`, a new optional key of the data file: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty subtitle, date or notes leave no gap where they would be (at 540 the chart no longer keeps about 50 px of empty space at the bottom), and when the three `words` are all `"-"` the tags of the paired chart leave the dash out. Without the key every chart at 540 and 1080 is drawn byte for byte as before.
 ## v1.4.0 — 2026-11-24
 
 ### Added

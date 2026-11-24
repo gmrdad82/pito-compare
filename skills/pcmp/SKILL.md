@@ -38,7 +38,7 @@ pcmp --version
 
 A bare `pcmp` prints its version and one line for each way to call it, and exits 0. `pcmp --help` (`-h`) has every option and a sample data file, and `pcmp --version` (`-V`) the version. The ways to call it are:
 
-- `pcmp <data> [--out <dir>] [--kind <kind>]` draws the charts of a data file. `--out` (`-o`) is the folder, `.` by default; `--kind` (`-k`) is `all`, `paired`, `ratio` or `bars`, `all` by default.
+- `pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]` draws the charts of a data file. `--out` (`-o`) is the folder, `.` by default; `--kind` (`-k`) is `all`, `paired`, `ratio` or `bars`, `all` by default; `--width` (`-w`) is `1080` by default, or `540` or `405` for a small picture.
 - `pcmp skill install` and `pcmp skill status` put this skill in place and check it.
 
 The examples here use the data files in pito-compare's `examples/`. In another project, run the same commands on your own file.

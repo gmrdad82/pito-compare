@@ -1,0 +1,18 @@
+title = "CHECKOUT LATENCY"
+better = "lower"
+bare = true
+suffix = " MS"
+decimals = 0
+
+[[parties]]
+name = "TODAY"
+
+[[parties]]
+name = "LAST WEEK"
+
+[[groups]]
+rows = [
+  { label = "SEARCH", values = [412, 198] },
+  { label = "CART", values = [180, 175] },
+  { label = "PAYMENT", values = [95, 140], mark = "*" },
+]
