@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0 — 2026-11-24
+
+### Added
+
+- `--width <PX>` (`-w`): `1080`, the default, draws exactly what it drew before; `540` draws every chart kind half as wide, with the pixel font at whole-number sizes so every text stays sharp, and refuses a text that does not fit that width, naming its field. Any other width is refused with one line naming the two allowed ones, exit code 2. The library has `render_at`, `render_each_at`, `paired_at`, `ratios_at` and `bars_at`.
+
 ## v1.3.3 — 2026-11-20
 
 ### Changed

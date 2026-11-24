@@ -24,6 +24,7 @@ The data file is JSON or TOML (by its extension, else by its first character):
   rows = [{ label = \"H.264 1080P\", values = [412, 298], mark = \"*\" }]
 
 Each PNG is written to <out>/<data file's stem>-<kind>.png and its path printed.
+--width 540 draws every chart half as wide, for a small picture; any other width but 1080 is refused.
 With --kind all, one party draws bars; two or more draw the paired and ratio charts.
 The README at https://github.com/gmrdad82/pito-compare has every field.
 
@@ -65,6 +66,14 @@ struct Cli {
         help = "which charts to draw"
     )]
     kind: KindArg,
+    #[arg(
+        short,
+        long,
+        value_name = "PX",
+        default_value_t = 1080,
+        help = "how wide each PNG is: 540 or 1080"
+    )]
+    width: i64,
 }
 
 #[derive(Subcommand)]
@@ -104,7 +113,7 @@ fn run(cli: &Cli, data: &Path) -> Result<Vec<PathBuf>, String> {
         .unwrap_or("chart");
     let mut written = Vec::new();
     let mut failed = None;
-    pito_compare::render_each(&chart, cli.kind.into(), |name, canvas| {
+    pito_compare::render_each_at(&chart, cli.kind.into(), cli.width, |name, canvas| {
         let path = cli.out.join(format!("{stem}-{name}.png"));
         canvas
             .save(&path)
@@ -139,8 +148,8 @@ fn print(lines: &[String]) {
 
 const FORMS: [(&str, &str); 4] = [
     (
-        "pcmp <data> [--out <dir>] [--kind <kind>]",
-        "draw the charts of a .json or .toml file: all, paired, ratio or bars",
+        "pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]",
+        "draw the charts of a .json or .toml file: all, paired, ratio or bars, 540 or 1080 px wide",
     ),
     (
         "pcmp skill install|status",
@@ -184,6 +193,12 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
     let cli = Cli::parse();
+    if cli.command.is_none()
+        && let Err(e) = pito_compare::draw::Look::new(cli.width)
+    {
+        eprintln!("pcmp: --width: {e}");
+        return ExitCode::from(2);
+    }
     let done = match (&cli.command, &cli.data) {
         (Some(Command::Skill { action }), _) => skill::run(action),
         (None, Some(data)) => run(&cli, data).map(|paths| {

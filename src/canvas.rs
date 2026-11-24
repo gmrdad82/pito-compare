@@ -93,12 +93,25 @@ pub struct Canvas {
     width: usize,
     height: usize,
     px: Vec<u8>,
+    half: bool,
 }
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
         let px = BG.repeat(width * height);
-        Self { width, height, px }
+        Self {
+            width,
+            height,
+            px,
+            half: false,
+        }
+    }
+
+    pub fn halved(width: usize, height: usize) -> Self {
+        Self {
+            half: true,
+            ..Self::new(width, height)
+        }
     }
 
     pub fn width(&self) -> usize {
@@ -118,6 +131,18 @@ impl Canvas {
     }
 
     pub fn rect(&mut self, x: i64, y: i64, w: i64, h: i64, c: Color) {
+        if self.half {
+            let (x0, y0) = (x.div_euclid(2), y.div_euclid(2));
+            let (x1, y1) = ((x + w + 1).div_euclid(2), (y + h + 1).div_euclid(2));
+            let wide = if w > 0 { (x1 - x0).max(1) } else { 0 };
+            let tall = if h > 0 { (y1 - y0).max(1) } else { 0 };
+            self.fill(x0, y0, wide, tall, c);
+        } else {
+            self.fill(x, y, w, h, c);
+        }
+    }
+
+    fn fill(&mut self, x: i64, y: i64, w: i64, h: i64, c: Color) {
         let x0 = x.clamp(0, self.width as i64) as usize;
         let x1 = (x + w).clamp(0, self.width as i64) as usize;
         let y0 = y.clamp(0, self.height as i64) as usize;
@@ -135,14 +160,21 @@ impl Canvas {
     }
 
     pub fn text(&mut self, x: i64, y: i64, text: &str, scale: usize, c: Color) {
-        let s = scale as i64;
-        let mut pen = x;
+        let (s, mut pen, y) = if self.half {
+            (
+                (scale / 2) as i64,
+                (x + 1).div_euclid(2),
+                (y + 1).div_euclid(2),
+            )
+        } else {
+            (scale as i64, x, y)
+        };
         for ch in text.chars() {
             let rows = glyph(ch);
             for (r, bits) in rows.iter().enumerate() {
                 for col in 0..5 {
                     if bits >> (4 - col) & 1 == 1 {
-                        self.rect(pen + col as i64 * s, y + r as i64 * s, s, s, c);
+                        self.fill(pen + col as i64 * s, y + r as i64 * s, s, s, c);
                     }
                 }
             }

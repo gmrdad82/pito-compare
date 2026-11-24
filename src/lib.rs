@@ -4,7 +4,7 @@ pub mod draw;
 
 pub use canvas::{Canvas, Color};
 pub use chart::{Better, Chart, Format, Group, Party, Row, Words};
-pub use draw::{bars, paired, ratios};
+pub use draw::{WIDTHS, bars, bars_at, paired, paired_at, ratios, ratios_at};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Error(String);
@@ -38,8 +38,12 @@ pub enum Kind {
 }
 
 pub fn render(chart: &Chart, kind: Kind) -> Result<Vec<(String, Canvas)>> {
+    render_at(chart, kind, draw::WIDTH)
+}
+
+pub fn render_at(chart: &Chart, kind: Kind, width: i64) -> Result<Vec<(String, Canvas)>> {
     let mut out = Vec::new();
-    render_each(chart, kind, |name, canvas| {
+    render_each_at(chart, kind, width, |name, canvas| {
         out.push((name.to_string(), canvas));
         Ok(())
     })?;
@@ -49,19 +53,29 @@ pub fn render(chart: &Chart, kind: Kind) -> Result<Vec<(String, Canvas)>> {
 pub fn render_each(
     chart: &Chart,
     kind: Kind,
+    each: impl FnMut(&str, Canvas) -> Result<()>,
+) -> Result<()> {
+    render_each_at(chart, kind, draw::WIDTH, each)
+}
+
+pub fn render_each_at(
+    chart: &Chart,
+    kind: Kind,
+    width: i64,
     mut each: impl FnMut(&str, Canvas) -> Result<()>,
 ) -> Result<()> {
+    draw::Look::new(width)?;
     chart.check()?;
     let single = chart.parties.len() == 1;
     if kind == Kind::Paired || (kind == Kind::All && !single) {
-        each("paired", paired(chart)?)?;
+        each("paired", paired_at(chart, width)?)?;
     }
     if kind == Kind::Ratio || (kind == Kind::All && !single) {
-        each("ratio", ratios(chart)?)?;
+        each("ratio", ratios_at(chart, width)?)?;
     }
     if kind == Kind::Bars || (kind == Kind::All && single) {
         if single {
-            each("bars", bars(chart, 0)?)?;
+            each("bars", bars_at(chart, 0, width)?)?;
         } else {
             let mut used = Vec::new();
             for (i, p) in chart.parties.iter().enumerate() {
@@ -74,7 +88,7 @@ pub fn render_each(
                         k += 1;
                     }
                 }
-                each(&name, bars(chart, i)?)?;
+                each(&name, bars_at(chart, i, width)?)?;
                 used.push(name);
             }
         }

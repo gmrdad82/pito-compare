@@ -106,7 +106,7 @@ Every text in the chart is drawn in a 5x7 pixel font: A to Z (lower case is draw
 
 ### The PNGs
 
-Each chart is a PNG, 1080 px wide, written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
+Each chart is a PNG, 1080 px wide (`--width 540` draws a 540 px one, with less room for text), written to `<out>/<stem>-<kind>.png`, where `<out>` is `--out` (the current folder by default, made if missing) and `<stem>` is the data file's name without its extension. A PNG already there is overwritten; a symlink there is refused, never written through.
 
 | `--kind` | One party | Two or more parties |
 |---|---|---|

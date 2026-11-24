@@ -66,7 +66,7 @@ A row needs `values`, a `ratio` or both. The paired bars and single bars need `v
 
 ## How much text fits
 
-Each text has the room of the 1080 px chart, and one that does not fit is refused, naming its field.
+Each text has the room of the 1080 px chart, and one that does not fit is refused, naming its field. With `--width 540` the room is smaller (the title holds 27 characters, the unit line and a row label 41): shorten the text, or draw at 1080.
 
 | Text | Characters |
 | --- | --- |

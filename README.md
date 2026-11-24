@@ -173,10 +173,10 @@ pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built fo
 $ pcmp
 pcmp 1.3.0: draws comparison charts as PNGs from a JSON or TOML data file
 
-  pcmp <data> [--out <dir>] [--kind <kind>]  draw the charts of a .json or .toml file: all, paired, ratio or bars
-  pcmp skill install|status                  install the skill pcmp comes with for Claude Code and other agents, or check it
-  pcmp --help                                the full help, with every option and the data format
-  pcmp --version                             print the version
+  pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]  draw the charts of a .json or .toml file: all, paired, ratio or bars, 540 or 1080 px wide
+  pcmp skill install|status                                 install the skill pcmp comes with for Claude Code and other agents, or check it
+  pcmp --help                                               the full help, with every option and the data format
+  pcmp --version                                            print the version
 
 Each PNG is written to <dir>/<data file's stem>-<kind>.png and its path printed.
 ```
@@ -184,12 +184,13 @@ Each PNG is written to <dir>/<data file's stem>-<kind>.png and its path printed.
 In full:
 
 ```
-pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars]
+pcmp <DATA> [--out DIR] [--kind all|paired|ratio|bars] [--width 540|1080]
 ```
 
 - `DATA` is a `.json` or `.toml` file (any other name is read as JSON when it starts with `{`, else as TOML).
 - `--out` is the folder the PNGs go to, made if missing; the current folder by default.
 - `--kind all` (the default) draws single bars for one party, and the paired and ratio charts for two or more. `paired`, `ratio` and `bars` draw one kind; `bars` with several parties draws one chart per party.
+- `--width` (`-w`) is how wide each PNG is: `1080` (the default) or `540`, a small picture for a chat notification. At 540 every text is drawn at a whole-number size of the same pixel font, so it stays sharp, and the texts have less room: the title holds 27 characters instead of 41. Any other width is refused with one line naming the two, and exit code 2.
 
 Each chart is written to `DIR/<the data file's name>-<kind>.png`, overwriting one already there (never through a symlink), and its path printed on its own line: `speed-paired.png`, `speed-ratio.png`, `build-bars.png`, or `speed-bars-parser-v2.png` per party. A party whose name has no letters or digits, or gives a file name another party already took, is numbered by its place instead: `speed-bars-2.png` for the second, or `speed-bars-2-2.png` when that name is taken too.
 

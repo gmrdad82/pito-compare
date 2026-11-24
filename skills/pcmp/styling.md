@@ -1,6 +1,6 @@
 # Styling
 
-pcmp has one look: its colours, its pixel font, 1080 px wide. What you choose is below. There is no theme, size or font option.
+pcmp has one look: its colours, its pixel font, 1080 px wide, or 540 with `--width 540` for a small picture. What you choose is below. There is no theme or font option, and the width is one of those two.
 
 ## Party colours
 

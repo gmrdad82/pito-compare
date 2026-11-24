@@ -1,6 +1,6 @@
 # Chart kinds
 
-pcmp draws three kinds, all 1080 px wide, in one look. `--kind all` (the default) draws every one that fits the data; `--kind paired`, `--kind ratio` and `--kind bars` draw one.
+pcmp draws three kinds, all 1080 px wide (540 with `--width 540`), in one look. `--kind all` (the default) draws every one that fits the data; `--kind paired`, `--kind ratio` and `--kind bars` draw one.
 
 | `--kind` | Draws | Needs |
 | --- | --- | --- |
