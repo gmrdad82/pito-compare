@@ -25,7 +25,7 @@ The data file is JSON or TOML (by its extension, else by its first character):
 
 Each PNG is written to <out>/<data file's stem>-<kind>.png and its path printed.
 --width 405 or 540 draws every chart at that width, for a small picture; any other width but 1080 is refused.
-bare = true in the data file leaves out the line of an empty unit, the dash of a row whose texts are all \"-\" and the gap of an empty subtitle, date or notes.
+bare = true in the data file leaves out the line of an empty unit, the dash of the tags when the three words are all \"-\" and the gap of an empty subtitle, date or notes.
 With --kind all, one party draws bars; two or more draw the paired and ratio charts.
 The README at https://github.com/gmrdad82/pito-compare has every field.
 
