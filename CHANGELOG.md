@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.0 — 2026-11-25
+
+### Added
+
+- `max`, a new optional key of the data file (a number above 0, at most 1e15): the value axis of the paired chart and the bars charts runs from 0 to exactly `max`, whatever the values, so two charts drawn minutes apart share one scale (a percent chart: `max = 100`). The ticks stay round numbers and the last one is `max` when it falls on one. `--width 405`, `540` and `1080` and `bare` work with it. A value above `max` is refused, naming its party and row (`groups[0].rows[1].values holds 101 for USED on LOGS: values are at most max, 100`), and so is a value text that would not fit past the end of the axis, so a bar that reaches `max` never loses its text. The ratio chart has no value axis and draws as before. The library's `Chart` has a new field, `max: Option<f64>`. Without the key every chart at every width is drawn byte for byte as before.
+
 ## v1.5.0 — 2026-11-25
 
 ### Added

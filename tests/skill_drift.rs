@@ -416,6 +416,20 @@ fn cases() -> Vec<Case> {
             &[],
         ),
         case(
+            "values are at most max, 100",
+            format!("max = 100\n{}", with("[1, 2]", "[1, 101]")),
+            &[],
+        ),
+        case(
+            "has a value text too long to fit beside its bar on an axis that ends at max",
+            format!(
+                "max = 100\nsuffix = \" {}\"\n{}",
+                long(50),
+                with("[1, 2]", "[100, 2]")
+            ),
+            &[],
+        ),
+        case(
             "row 1 (FILE SIZE) has no values to draw as bars",
             with(
                 "rows = [{ label = \"R\", values = [1, 2] }]",

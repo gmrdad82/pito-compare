@@ -16,6 +16,15 @@ pcmp: neg.toml: groups[0].rows[0].values holds -612: values are finite and zero 
 
 Values are measurements, so zero or more. `groups[0].rows[0]` is the first row of the first group; a file with `rows` and no groups has them in one unnamed group, so the path reads the same.
 
+## A value above the axis maximum
+
+```
+$ pcmp disk.toml
+pcmp: disk.toml: groups[0].rows[1].values holds 101 for USED on LOGS: values are at most max, 100
+```
+
+`max` fixes the value axis from 0 to exactly that number, so a value above it has no place on the chart. Fix the value, or raise `max`.
+
 ## A character the font can't draw
 
 ```
@@ -29,7 +38,7 @@ The chart font is a 5x7 pixel font with a fixed set of characters. Lower case is
 
 ```
 $ pcmp key.toml
-pcmp: key.toml: unknown field `color`, expected one of `title`, `unit`, `better`, `subtitle`, `date`, `parties`, `versus`, `groups`, `rows`, `notes`, `suffix`, `decimals`, `words`, `bare` at line 3 column 1
+pcmp: key.toml: unknown field `color`, expected one of `title`, `unit`, `better`, `subtitle`, `date`, `parties`, `versus`, `groups`, `rows`, `notes`, `suffix`, `decimals`, `words`, `bare`, `max` at line 3 column 1
 ```
 
 A misspelt key would otherwise be dropped without a word, so it is refused. The party's colour is spelt `colour`, and it belongs to a party, not the chart.

@@ -171,7 +171,7 @@ pito-compare is one of the open tools of [PITO MD](https://pitomd.com), built fo
 
 ```
 $ pcmp
-pcmp 1.5.0: draws comparison charts as PNGs from a JSON or TOML data file
+pcmp 1.6.0: draws comparison charts as PNGs from a JSON or TOML data file
 
   pcmp <data> [--out <dir>] [--kind <kind>] [--width <px>]  draw the charts of a .json or .toml file: all, paired, ratio or bars, 405, 540 or 1080 px wide
   pcmp skill install|status                                 install the skill pcmp comes with for Claude Code and other agents, or check it
@@ -242,6 +242,7 @@ The same in JSON is an object with the same keys: `{"title": "PARSE SPEED", "bet
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | `{ better = "FASTER", worse = "SLOWER", same = "SAME SPEED" }`, the words of the tags and the ratio chart. |
 | `bare` | no | `true` draws a bare chart, for a small picture with nothing extra: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty `subtitle` and `date`, or no `notes`, leave no gap where they would be, and when the three `words` are all `"-"` the tags of the paired chart leave the dash out (`2.5×` instead of `2.5× -`, nothing for a row of the same speed). `false` by default, so a data file made before this key draws the same pixels. |
+| `max` | no | A number above 0 and at most 1e15: the value axis of the paired chart and the bars charts runs from 0 to exactly `max`, whatever the values, so two charts drawn minutes apart share one scale (a percent chart: `max = 100`). The ticks stay round numbers, and the last one is `max` when it falls on one. A value above `max` is refused, naming its party and row, and so is a value text that would not fit past the end of the axis. The ratio chart has no value axis and draws as before. Without the key the axis follows the largest value, so a data file made before this key draws the same pixels. |
 
 Each row has a `label`, its `values` (one per party, zero to 1e15) and optionally a `mark` written after the label, `texts` to print in place of the values (one per party), and a `ratio` to use in place of the one the values give.
 
@@ -249,7 +250,7 @@ A party's `colour` is `#RRGGBB` or one of the chart's roles: `ours` (orange, the
 
 How the comparison reads: with `better = "higher"`, the first party is `first / versus` times faster; with `"lower"`, `versus / first`. A row whose ratio rounds to 1.0 says "SAME SPEED". The ratio chart needs both compared values above zero, or a `ratio`.
 
-The chart font draws A to Z (lower case is drawn in capitals), 0 to 9, space and `. , : ; - + / ( ) % = < > ' _ | × * †`. Any other character, an unknown key, a value that is negative, not a number or above 1e15, a ratio outside 1e-15 to 1e15, more than 12 parties, or text too long for its line is refused with the field it is in, so a chart never comes out wrong.
+The chart font draws A to Z (lower case is drawn in capitals), 0 to 9, space and `. , : ; - + / ( ) % = < > ' _ | × * †`. Any other character, an unknown key, a value that is negative, not a number, above 1e15 or above `max`, a ratio outside 1e-15 to 1e15, more than 12 parties, or text too long for its line is refused with the field it is in, so a chart never comes out wrong.
 
 ### The library
 

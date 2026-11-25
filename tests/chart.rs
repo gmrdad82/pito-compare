@@ -745,3 +745,88 @@ fn a_bare_chart_has_no_unit_line_when_the_unit_is_empty() {
     c.unit = "ms".into();
     assert_eq!(c.unit_line(), "ms, LOWER IS BETTER");
 }
+
+const WITH_MAX: &str = "title = \"T\"\nbetter = \"lower\"\nparties = [{ name = \"A\" }, { name = \"B\" }]\nrows = [{ label = \"R\", values = [30, 40] }, { label = \"S\", values = [100, 7] }]\n";
+
+#[test]
+fn max_is_off_unless_the_file_gives_it() {
+    assert_eq!(
+        Chart::parse(WITH_MAX, Format::Toml).expect("parses").max,
+        None
+    );
+    let whole = format!("max = 100\n{WITH_MAX}");
+    assert_eq!(
+        Chart::parse(&whole, Format::Toml).expect("parses").max,
+        Some(100.0)
+    );
+    let fraction = format!("max = 100.5\n{WITH_MAX}");
+    assert_eq!(
+        Chart::parse(&fraction, Format::Toml).expect("parses").max,
+        Some(100.5)
+    );
+    let json = r#"{"title":"T","better":"lower","max":1e3,"parties":[{"name":"A"}],"rows":[{"label":"R","values":[1]}]}"#;
+    assert_eq!(
+        Chart::parse(json, Format::Json).expect("parses").max,
+        Some(1000.0)
+    );
+    assert_eq!(chart().max, None);
+}
+
+#[test]
+fn max_is_a_number_above_zero_and_at_most_the_largest_value() {
+    for (bad, said) in [
+        ("0", "max is 0: "),
+        ("-5", "max is -5: "),
+        ("nan", "max is NaN: "),
+        ("inf", "max is inf: "),
+        ("1e15", ""),
+        ("1.0000001e15", "max is 1000000100000000: "),
+    ] {
+        let text = format!("max = {bad}\n{WITH_MAX}");
+        match Chart::parse(&text, Format::Toml) {
+            Ok(c) => assert_eq!(said, "", "{bad}: {:?}", c.max),
+            Err(e) => {
+                let m = e.message();
+                assert!(m.starts_with(said), "{bad}: {m}");
+                assert!(
+                    m.ends_with("the axis maximum is a number above 0 and at most 1e15"),
+                    "{bad}: {m}"
+                );
+            }
+        }
+    }
+    for bad in ["\"100\"", "true", "[100]"] {
+        let text = format!("max = {bad}\n{WITH_MAX}");
+        assert!(Chart::parse(&text, Format::Toml).is_err(), "{bad}");
+    }
+}
+
+#[test]
+fn a_value_above_max_is_refused_naming_its_party_row_and_place() {
+    let text = format!("max = 99\n{WITH_MAX}");
+    assert_eq!(
+        parse_err(&text, Format::Toml),
+        "groups[0].rows[1].values holds 100 for A on S: values are at most max, 99"
+    );
+    let text = format!("max = 7\n{WITH_MAX}");
+    assert_eq!(
+        parse_err(&text, Format::Toml),
+        "groups[0].rows[0].values holds 30 for A on R: values are at most max, 7"
+    );
+    let text = format!("max = 100\n{WITH_MAX}");
+    assert_eq!(
+        Chart::parse(&text, Format::Toml).expect("max itself").max,
+        Some(100.0)
+    );
+    let mut c = chart();
+    c.groups[0].rows[0].values[1] = 2.5;
+    c.max = Some(2.0);
+    assert_eq!(
+        refusal(&c),
+        "groups[0].rows[0].values holds 2.5 for theirs on clip: values are at most max, 2"
+    );
+    c.max = Some(2.5);
+    c.check().expect("equal to max");
+    c.max = Some(0.0);
+    refused_with(&c, "max is 0: ");
+}

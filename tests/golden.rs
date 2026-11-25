@@ -9,7 +9,7 @@ fn pixels(bytes: &[u8]) -> (u32, u32, Vec<u8>) {
     (picture.width, picture.height, picture.data)
 }
 
-const GOLDENS: [(&str, &str, i64, Kind); 15] = [
+const GOLDENS: [(&str, &str, i64, Kind); 17] = [
     ("405-paired", "examples/speed.toml", 405, Kind::Paired),
     ("405-ratio", "examples/speed.toml", 405, Kind::Ratio),
     ("405-bars", "examples/build.toml", 405, Kind::Bars),
@@ -50,6 +50,18 @@ const GOLDENS: [(&str, &str, i64, Kind); 15] = [
         "540-bare-bars",
         "tests/golden/alert-one.toml",
         540,
+        Kind::Bars,
+    ),
+    (
+        "405-max-high-bars",
+        "tests/golden/max-high.toml",
+        405,
+        Kind::Bars,
+    ),
+    (
+        "405-max-low-bars",
+        "tests/golden/max-low.toml",
+        405,
         Kind::Bars,
     ),
     (

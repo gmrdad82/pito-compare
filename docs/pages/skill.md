@@ -13,7 +13,7 @@ A `SKILL.md` with a description and triggers, the safety rules, how to find a co
 
 | Guide | What it covers |
 |---|---|
-| `data-file.md` | The JSON and TOML data file: every key, the limits and the font's characters. |
+| `data-file.md` | The JSON and TOML data file: every key, a fixed axis with `max`, the limits and the font's characters. |
 | `charts.md` | Paired bars, the balanced ratio chart and single bars: which to draw and how a ratio reads. |
 | `styling.md` | Party colours, the words of the tags, decimals, suffix, marks, notes, texts and your own ratio. |
 | `output.md` | `--out`, `--kind`, the PNG names, stdout, the exit codes and how to read a refusal. |
@@ -41,8 +41,8 @@ The [install lines](../install/) for Linux, macOS and Windows run `pcmp skill in
 
 ```
 $ pcmp skill status
-Claude skill: installed at ~/.claude/skills/pcmp, matches pcmp 1.5.0
-Agents skill: installed at ~/.agents/skills/pcmp, matches pcmp 1.5.0
+Claude skill: installed at ~/.claude/skills/pcmp, matches pcmp 1.6.0
+Agents skill: installed at ~/.agents/skills/pcmp, matches pcmp 1.6.0
 ```
 
-A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.5.0; pcmp skill install refreshes it`.
+A folder that is not installed reads `not installed`, and one whose files differ from this pcmp reads `does not match pcmp 1.6.0; pcmp skill install refreshes it`.

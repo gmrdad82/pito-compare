@@ -429,6 +429,20 @@ fn ticks(step: f64, peak: f64) -> Vec<f64> {
     at
 }
 
+fn ticks_to(step: f64, max: f64) -> Vec<f64> {
+    let n = (max / step + 1e-9).floor() as usize;
+    (0..=n)
+        .map(|k| {
+            let t = k as f64 * step;
+            if (t - max).abs() <= step * 1e-9 {
+                max
+            } else {
+                t
+            }
+        })
+        .collect()
+}
+
 fn fixed(v: f64, places: usize) -> String {
     let s = format!("{v:.places$}");
     if places == 0 {
@@ -586,20 +600,34 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
         &chart.subtitle_line(),
     );
     legend(Some(&mut c), l, legend_y, &items);
-    let max = chart
-        .rows()
-        .flat_map(|r| parties.iter().map(|&p| r.values[p]))
-        .fold(0.0, f64::max);
-    let max = if max > 0.0 { max } else { 1.0 };
-    let step = nice_step(max);
-    let peak = (max / step).ceil() * step;
-    if !(peak.is_finite() && step.is_finite() && step > 0.0) {
-        return Err(Error::new(format!(
-            "the values reach {max:e}: an axis is drawn up to {MAX_VALUE:e}"
-        )));
-    }
+    let (max, step, peak) = match chart.max {
+        Some(max) => {
+            let step = nice_step(max);
+            if !(step.is_finite() && step > 0.0) {
+                return Err(Error::new(format!(
+                    "max is {max:e}: too small for an axis to be drawn"
+                )));
+            }
+            (max, step, max)
+        }
+        None => {
+            let max = chart
+                .rows()
+                .flat_map(|r| parties.iter().map(|&p| r.values[p]))
+                .fold(0.0, f64::max);
+            let max = if max > 0.0 { max } else { 1.0 };
+            let step = nice_step(max);
+            let peak = (max / step).ceil() * step;
+            if !(peak.is_finite() && step.is_finite() && step > 0.0) {
+                return Err(Error::new(format!(
+                    "the values reach {max:e}: an axis is drawn up to {MAX_VALUE:e}"
+                )));
+            }
+            (max, step, peak)
+        }
+    };
     let mut aw = l.w - 2 * l.left - l.reserve;
-    for r in chart.rows() {
+    for (i, r) in chart.rows().enumerate() {
         for &p in parties {
             let v = r.values[p];
             if v <= 0.0 {
@@ -608,7 +636,17 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
             let tw = Canvas::text_width(&chart.value_text(r, p), l.body);
             let room = l.w - 2 * l.left - l.value_gap - tw;
             let fit = (room as f64 * peak / v).floor() as i64;
-            aw = aw.min(fit);
+            if chart.max.is_some() {
+                if fit < aw {
+                    return Err(Error::new(format!(
+                        "row {} ({}) has a value text too long to fit beside its bar on an axis that ends at max {max}: shorten the suffix or the texts",
+                        i + 1,
+                        r.label
+                    )));
+                }
+            } else {
+                aw = aw.min(fit);
+            }
         }
     }
     if aw < l.aw_min {
@@ -619,7 +657,11 @@ fn bar_chart(chart: &Chart, l: &Look, parties: &[usize], tags: bool) -> Result<C
     let x = |v: f64| l.left + (v / peak * aw as f64).round() as i64;
     let mut grid = Vec::new();
     let mut last = i64::MIN;
-    for t in ticks(step, peak) {
+    let marks = match chart.max {
+        Some(_) => ticks_to(step, max),
+        None => ticks(step, peak),
+    };
+    for t in marks {
         let gx = x(t);
         grid.push((gx, t == 0.0));
         let label = tick_text(t, step);
@@ -902,7 +944,39 @@ pub fn ratios_at(chart: &Chart, width: i64) -> Result<Canvas> {
 
 #[cfg(test)]
 mod tests {
-    use super::{nice_step, tick_text, ticks};
+    use super::{nice_step, tick_text, ticks, ticks_to};
+
+    #[test]
+    fn ticks_to_stop_at_max_and_end_on_it_when_it_falls_on_a_tick() {
+        assert_eq!(ticks_to(20.0, 100.0), [0.0, 20.0, 40.0, 60.0, 80.0, 100.0]);
+        assert_eq!(ticks_to(10.0, 30.0), [0.0, 10.0, 20.0, 30.0]);
+        assert_eq!(ticks_to(20.0, 70.0), [0.0, 20.0, 40.0, 60.0]);
+        assert_eq!(ticks_to(2.0, 7.0), [0.0, 2.0, 4.0, 6.0]);
+        assert_eq!(ticks_to(5.0, 3.0), [0.0]);
+        assert_eq!(ticks_to(0.1, 0.3), [0.0, 0.1, 0.2, 0.3]);
+        assert_eq!(ticks_to(0.25, 1.0), [0.0, 0.25, 0.5, 0.75, 1.0]);
+    }
+
+    #[test]
+    fn every_fixed_axis_from_a_trillionth_to_the_largest_value_ends_on_max_or_below_it() {
+        let mut max = 1e-12;
+        while max <= 1e15 {
+            let step = nice_step(max);
+            let at = ticks_to(step, max);
+            assert!(at.len() >= 2 || step > max, "{max:e}");
+            assert!(at.iter().all(|t| *t <= max), "{max:e}");
+            let last = at[at.len() - 1];
+            assert!(max - last < step * (1.0 + 1e-6), "{max:e}");
+            for t in at {
+                let back: f64 = tick_text(t, step).parse().expect("a number");
+                assert!(
+                    (back - t).abs() <= step * 1e-6,
+                    "{back} for {t:e} on {max:e}"
+                );
+            }
+            max *= 1.07;
+        }
+    }
 
     #[test]
     fn ticks_from_a_step_of_a_millionth_up_keep_their_decimals() {

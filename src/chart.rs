@@ -65,6 +65,7 @@ pub struct Chart {
     pub decimals: Option<usize>,
     pub words: Words,
     pub bare: bool,
+    pub max: Option<f64>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -125,6 +126,7 @@ impl Chart {
             decimals: None,
             words: Words::default(),
             bare: false,
+            max: None,
         }
     }
 
@@ -248,6 +250,13 @@ impl Chart {
         if self.decimals.is_some_and(|d| d > 6) {
             return Err(Error::new("decimals is at most 6"));
         }
+        if let Some(m) = self.max
+            && !(m.is_finite() && m > 0.0 && m <= MAX_VALUE)
+        {
+            return Err(Error::new(format!(
+                "max is {m}: the axis maximum is a number above 0 and at most {MAX_VALUE:e}"
+            )));
+        }
         if self.parties.len() > 1 && (self.versus == 0 || self.versus >= self.parties.len()) {
             return Err(Error::new(
                 "versus must name a party other than the first, which is the one compared",
@@ -289,6 +298,15 @@ impl Chart {
                 if let Some(v) = row.values.iter().find(|v| **v > MAX_VALUE) {
                     return Err(Error::new(format!(
                         "{at}.values holds {v:e}: values are at most {MAX_VALUE:e}"
+                    )));
+                }
+                if let Some(m) = self.max
+                    && let Some((p, v)) = row.values.iter().enumerate().find(|(_, v)| **v > m)
+                {
+                    return Err(Error::new(format!(
+                        "{at}.values holds {v} for {} on {}: values are at most max, {m}",
+                        self.parties.get(p).map_or("", |p| p.name.as_str()),
+                        row.label
                     )));
                 }
                 if !row.texts.is_empty() && row.texts.len() != self.parties.len() {
@@ -422,6 +440,8 @@ struct Spec {
     words: WordsSpec,
     #[serde(default)]
     bare: bool,
+    #[serde(default)]
+    max: Option<f64>,
 }
 
 #[derive(Deserialize)]
@@ -544,6 +564,7 @@ impl Spec {
                 same: self.words.same.unwrap_or(defaults.same),
             },
             bare: self.bare,
+            max: self.max,
         })
     }
 }

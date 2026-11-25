@@ -45,8 +45,23 @@ rows = [
 | `decimals` | no | Decimals for each value, 0 to 6. By default one below 100 and none from 100 up. |
 | `words` | no | The words of the tags and the ratio chart (see [`styling.md`](styling.md)). |
 | `bare` | no | `true` draws a bare chart, for a small picture with nothing extra: an empty `unit` leaves out the `HIGHER IS BETTER` or `LOWER IS BETTER` line, an empty `subtitle` and `date`, or no `notes`, leave no gap where they would be, and when the three `words` are all `"-"` the tags of the paired chart leave the dash out (`2.5×` instead of `2.5× -`, nothing for a row of the same speed). `false` by default, so a data file made before this key draws the same pixels. |
+| `max` | no | A number above 0 and at most 1e15: the value axis of the paired chart and the bars charts runs from 0 to exactly `max`, whatever the values, so two charts drawn minutes apart share one scale (a percent chart: `max = 100`). The ticks stay round numbers, and the last one is `max` when it falls on one. A value above `max` is refused, naming its party and row, and so is a value text that would not fit past the end of the axis. The ratio chart has no value axis and draws as before. Without the key the axis follows the largest value, so a data file made before this key draws the same pixels. |
 
 Any other key is refused, with the keys it expected.
+
+## A fixed axis
+
+`max` fixes the value axis of the paired chart and the bars charts from 0 to exactly `max`, whatever the values, so two charts drawn minutes apart share one scale. A percent chart says `max = 100`:
+
+```toml
+max = 100
+suffix = "%"
+```
+
+- The ticks stay round numbers, and the last one is `max` when it falls on one (`max = 100` ends on 100; `max = 70` ends past its last tick, 60).
+- A value above `max` is refused, naming its party and row, and so is a value text that would not fit past the end of the axis (a long `suffix` or `texts` on a bar that reaches `max`).
+- Every `--width` draws it, `bare` too, and every `bars-<party>` chart of a file shares the axis. The ratio chart has no value axis and draws as before.
+- Without `max` the axis follows the largest value, as it always did.
 
 ## A party
 
@@ -59,7 +74,7 @@ A group is `name` (optional heading) and `rows` (one or more). A file with `rows
 A row has:
 
 - `label` (required) and `mark` (optional, such as `*` or `†`, written after the label for a note to explain).
-- `values`: one number per party, in the parties' order, finite, zero or more and at most 1e15.
+- `values`: one number per party, in the parties' order, finite, zero or more, at most 1e15 and at most `max` when the chart sets one.
 - `texts` (optional): one string per party, printed in place of the values; the bars still follow `values`.
 - `ratio` (optional): the row's ratio in place of the one its values give; finite and above zero.
 

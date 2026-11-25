@@ -26,7 +26,7 @@ The data file is JSON or TOML (by its extension, else by its first character):
 Each PNG is written to <out>/<data file's stem>-<kind>.png and its path printed.
 --width 405 or 540 draws every chart at that width, for a small picture; any other width but 1080 is refused.
 bare = true in the data file leaves out the line of an empty unit, the dash of the tags when the three words are all \"-\" and the gap of an empty subtitle, date or notes.
-With --kind all, one party draws bars; two or more draw the paired and ratio charts.
+max = 100 in the data file fixes the value axis of the paired and bars charts from 0 to 100, whatever the values, so charts drawn apart share one scale; a value above it is refused.\nWith --kind all, one party draws bars; two or more draw the paired and ratio charts.
 The README at https://github.com/gmrdad82/pito-compare has every field.
 
 pcmp comes with a skill for AI coding agents. `pcmp skill install` puts it in

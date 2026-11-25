@@ -51,6 +51,8 @@ Each chart is a PNG, 1080 px wide by default (`--width`), written to `<out>/<ste
 | `title is too long: at most 41 characters fit` | shorten the text, or move detail into `notes`; every text has a limit (see [`data-file.md`](data-file.md)) |
 | `has a word longer than a line` | a word of a note is wider than the chart; break it up |
 | `the value texts are too long to fit beside the bars` | shorten the suffix or the texts |
+| `values are at most max, 100` | a value is above the `max` of the file; the line names its party and row: fix the value or raise `max` |
+| `has a value text too long to fit beside its bar on an axis that ends at max` | with `max` set the axis keeps its length: shorten the suffix or the texts |
 | `row 1 (FILE SIZE) has no values to draw as bars` | the row has only a `ratio`; draw `--kind ratio` only |
 | `row 1 (R) has no ratio: the compared values must be above zero` | give the row a `ratio`, or draw only `--kind paired` |
 | `the paired chart needs two parties or more` | one party draws as `--kind bars` |

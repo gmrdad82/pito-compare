@@ -18,7 +18,7 @@ pcmp is the command line of [pito-compare](https://github.com/gmrdad82/pito-comp
 
 Read the matching guide before writing a data file:
 
-- [`data-file.md`](data-file.md) - the JSON and TOML data file: every key, how much text fits, the characters the font has
+- [`data-file.md`](data-file.md) - the JSON and TOML data file: every key, a fixed axis with `max`, how much text fits, the characters the font has
 - [`charts.md`](charts.md) - paired bars, the balanced ratio chart and single bars: which to draw, how a ratio reads
 - [`styling.md`](styling.md) - party colours, the words of the tags, decimals, suffix, marks, notes, texts and your own ratio
 - [`output.md`](output.md) - `--out`, `--kind`, the PNG names, stdout, the exit codes and how to read a refusal

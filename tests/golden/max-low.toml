@@ -1,0 +1,18 @@
+title = "DISK USED"
+better = "lower"
+bare = true
+suffix = "%"
+decimals = 0
+max = 100
+
+[[parties]]
+name = "USED"
+colour = "slower"
+
+[[groups]]
+name = "VOLUMES"
+rows = [
+  { label = "DATA", values = [20] },
+  { label = "LOGS", values = [40] },
+  { label = "TMP", values = [40] },
+]
