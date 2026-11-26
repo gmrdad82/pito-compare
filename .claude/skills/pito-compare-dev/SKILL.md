@@ -9,7 +9,7 @@ pito-compare is the `pito_compare` Rust library and `pcmp`, its command line. It
 
 This skill is for changing pito-compare. Drawing a chart with the installed `pcmp` is the `pcmp` skill, whose files are [`skills/pcmp/`](../../../skills/pcmp/SKILL.md) here and are built into the binary.
 
-The rules live in `AGENTS.md` (`CLAUDE.md` imports it), and the open work lives on its P99 board (space pito, project pito-compare): `p99 cards --space pito --json` lists it. Read both, and keep to the speed rules in `AGENTS.md`: they decide what to run. `AGENTS.md` is an untracked file of the main checkout, so a worktree has none: read it in the main checkout, which `git worktree list` names first. This skill adds the how-to and does not repeat them.
+The rules live in `AGENTS.md` (`CLAUDE.md` imports it), and the open work lives on the shared Open Source P99 board (space pito, project "Open Source") as cards titled `[pito-compare] what it is`, with no labels: `p99 cards --space pito --project "Open Source" --json` lists the board, of which only the titles starting `[pito-compare]` are this repository's, and `p99 card new --space pito --project "Open Source" --title "[pito-compare] …" --agent` files one. Read both, and keep to the speed rules in `AGENTS.md`: they decide what to run. `AGENTS.md` is an untracked file of the main checkout, so a worktree has none: read it in the main checkout, which `git worktree list` names first. This skill adds the how-to and does not repeat them.
 
 ## Layout
 

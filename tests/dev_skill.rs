@@ -201,7 +201,8 @@ fn the_skill_has_the_shape_of_a_repo_dev_skill_and_stays_one_page() {
     assert!(table.contains("`pcmp --help`"));
     assert!(after.starts_with("Decision framework"));
     assert!(text.contains("`AGENTS.md`") && text.contains("`CLAUDE.md`"));
-    assert!(text.contains("P99 board (space pito, project pito-compare)"));
+    assert!(text.contains("p99 cards --space pito --project \"Open Source\" --json"));
+    assert!(text.contains("`[pito-compare] what it is`"));
     let mut others: Vec<String> = std::fs::read_dir(folder())
         .expect("the skill folder")
         .flatten()
